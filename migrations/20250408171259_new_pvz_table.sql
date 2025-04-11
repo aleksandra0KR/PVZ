@@ -7,7 +7,6 @@ CREATE TABLE IF NOT EXISTS pvz (
     registration_date TIMESTAMPTZ NOT NULL DEFAULT now(),
     city city_name NOT NULL
     );
-CREATE INDEX idx_pvz_city ON pvz(city);
 -- +goose StatementEnd
 
 -- +goose Down
