@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  test-task:
+    build: ./
+    command: ./main
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db-postgres
+    environment:
+      - DB_PASSWORD=postgres
+      - DB_USER=postgres
+      - DB_NAME=postgres
+      - DB_HOST=db-postgres
+      - DB_PORT=5432
+
+  db-postgres:
+    restart: always
+    image: postgres:13.3
+    ports:
+      - "5438:5432"
+    environment:
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=postgres
