@@ -3,8 +3,8 @@ package domain
 import "time"
 
 type Product struct {
-	ID          string    `db:"id"`
-	DateTime    time.Time `db:"date_time"`
-	Type        string    `db:"type"`
-	ReceptionID string    `db:"reception_id"`
+	ID          *string    `db:"id" json:"id"`
+	DateTime    *time.Time `db:"date_time" json:"dateTime"`
+	Type        *string    `db:"type" json:"type"`
+	ReceptionID *string    `db:"reception_id" json:"receptionId"`
 }
