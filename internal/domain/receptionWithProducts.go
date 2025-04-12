@@ -1,6 +1,6 @@
 package domain
 
 type ReceptionWithProducts struct {
-	Reception Reception
-	Products  []Product
+	Reception Reception `json:"reception"`
+	Products  []Product `json:"products,omitempty"`
 }
