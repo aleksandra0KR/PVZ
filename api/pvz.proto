@@ -1,5 +1,5 @@
 syntax = "proto3";
-option go_package = "github.com/yourproject/pvz/pvz_v1;pvz_v1";
+option go_package = "final/internal/domain/grpcPVZ";
 
 import "google/protobuf/timestamp.proto";
 
