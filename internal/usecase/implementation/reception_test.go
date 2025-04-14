@@ -28,7 +28,7 @@ func TestCreateReception(t *testing.T) {
 	mockRepo := mock_repository.NewMockReceptionRepository(ctrl)
 	useCase := NewReceptionUseCase(mockRepo)
 
-	t.Run("success", func(t *testing.T) {
+	t.Run("Successful_Create_Reception", func(t *testing.T) {
 		reception := &domain.Reception{PvzId: &PvzId}
 		outputReception := &domain.Reception{PvzId: &PvzId, ID: &id, DateTime: &dateTime, Status: &status}
 
@@ -39,7 +39,7 @@ func TestCreateReception(t *testing.T) {
 		assert.Equal(t, outputReception, result)
 	})
 
-	t.Run("nil pvzId", func(t *testing.T) {
+	t.Run("Failure_nil_pvzId", func(t *testing.T) {
 		reception := &domain.Reception{}
 
 		result, err := useCase.CreateReception(reception)
@@ -65,7 +65,7 @@ func TestCloseReception(t *testing.T) {
 	mockRepo := mock_repository.NewMockReceptionRepository(ctrl)
 	useCase := NewReceptionUseCase(mockRepo)
 
-	t.Run("success", func(t *testing.T) {
+	t.Run("Successful_Close_Reception", func(t *testing.T) {
 		outputReception := &domain.Reception{PvzId: &PvzId, ID: &id, DateTime: &dateTime, Status: &status}
 
 		mockRepo.EXPECT().CloseReception(&PvzId).Return(outputReception, nil)
@@ -75,7 +75,7 @@ func TestCloseReception(t *testing.T) {
 		assert.Equal(t, outputReception, result)
 	})
 
-	t.Run("nil pvzId", func(t *testing.T) {
+	t.Run("Failure_nil_pvzId", func(t *testing.T) {
 		var pvzID *string
 
 		result, err := useCase.CloseReception(pvzID)
@@ -84,7 +84,7 @@ func TestCloseReception(t *testing.T) {
 		assert.Nil(t, result)
 	})
 
-	t.Run("empty pvzId", func(t *testing.T) {
+	t.Run("Failure_Empty_pvzId", func(t *testing.T) {
 		pvzID := ""
 
 		result, err := useCase.CloseReception(&pvzID)

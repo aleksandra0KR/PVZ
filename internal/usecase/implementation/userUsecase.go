@@ -46,6 +46,7 @@ func (uc *UserUseCase) Login(inputUser *domain.InputUser) (*domain.User, error) 
 	if !checkUserData(inputUser) {
 		return nil, domain.ErrInvalidCredentials
 	}
+
 	user, err := uc.userRepository.GetUserByEmail(*inputUser.Email)
 	if err != nil {
 		return nil, err

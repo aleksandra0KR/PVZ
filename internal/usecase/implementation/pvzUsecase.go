@@ -1,9 +1,9 @@
 package implementation
 
 import (
-	"errors"
 	"final/internal/domain"
 	"final/internal/repository"
+	log "github.com/sirupsen/logrus"
 	"strconv"
 	"time"
 )
@@ -17,20 +17,11 @@ func NewPVZUseCase(pvzRepository repository.PVZRepository) *PVZUseCase {
 }
 
 func (uc *PVZUseCase) CreatePVZ(pvz *domain.PVZ) (*domain.PVZ, error) {
-	if !isValidCity(*pvz.City) {
-		return nil, errors.New("invalid city")
+	err := isValidCity(pvz.City)
+	if err != nil {
+		return nil, err
 	}
 	return uc.pvzRepository.CreatePVZ(pvz)
-}
-
-func isValidCity(city string) bool {
-	var allowedCities = map[string]struct{}{
-		"Москва":          {},
-		"Санкт-Петербург": {},
-		"Казань":          {},
-	}
-	_, ok := allowedCities[city]
-	return ok
 }
 
 func (uc *PVZUseCase) GetPVZInfo(startDateStr, endDateStr, pageStr, limitStr string) ([]domain.PVZWithReceptions, error) {
@@ -38,7 +29,8 @@ func (uc *PVZUseCase) GetPVZInfo(startDateStr, endDateStr, pageStr, limitStr str
 	if startDateStr != "" {
 		startDateTime, err := time.Parse(time.RFC3339, startDateStr)
 		if err != nil {
-			return nil, err
+			log.Error(err)
+			return nil, domain.ErrGetPVZInfo
 		}
 		startDate = &startDateTime
 	}
@@ -46,7 +38,8 @@ func (uc *PVZUseCase) GetPVZInfo(startDateStr, endDateStr, pageStr, limitStr str
 	if endDateStr != "" {
 		endDateTime, err := time.Parse(time.RFC3339, endDateStr)
 		if err != nil {
-			return nil, err
+			log.Error(err)
+			return nil, domain.ErrGetPVZInfo
 		}
 		endDate = &endDateTime
 	}
@@ -55,7 +48,8 @@ func (uc *PVZUseCase) GetPVZInfo(startDateStr, endDateStr, pageStr, limitStr str
 	if pageStr != "" {
 		val, err := strconv.Atoi(pageStr)
 		if err != nil {
-			return nil, err
+			log.Error(err)
+			return nil, domain.ErrGetPVZInfo
 		}
 		page = val
 	}
@@ -64,7 +58,8 @@ func (uc *PVZUseCase) GetPVZInfo(startDateStr, endDateStr, pageStr, limitStr str
 	if limitStr != "" {
 		val, err := strconv.Atoi(limitStr)
 		if err != nil {
-			return nil, err
+			log.Error(err)
+			return nil, domain.ErrGetPVZInfo
 		}
 		limit = val
 	}
@@ -73,7 +68,23 @@ func (uc *PVZUseCase) GetPVZInfo(startDateStr, endDateStr, pageStr, limitStr str
 
 	pvzInfo, err := uc.pvzRepository.GetPVZInfo(startDate, endDate, offset, limit)
 	if err != nil {
-		return nil, err
+		return nil, domain.ErrGetPVZInfo
 	}
 	return pvzInfo, nil
+}
+
+func isValidCity(city *string) error {
+	if city == nil {
+		return domain.ErrInvalidInputData
+	}
+	var allowedCities = map[string]struct{}{
+		"Москва":          {},
+		"Санкт-Петербург": {},
+		"Казань":          {},
+	}
+	_, ok := allowedCities[*city]
+	if !ok {
+		return domain.ErrInvalidCity
+	}
+	return nil
 }

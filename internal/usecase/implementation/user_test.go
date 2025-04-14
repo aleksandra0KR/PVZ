@@ -24,7 +24,7 @@ func TestRegister(t *testing.T) {
 	role := "employee"
 	password := "password"
 
-	t.Run("success", func(t *testing.T) {
+	t.Run("Successful_Registration", func(t *testing.T) {
 		inputUser := &domain.InputUser{Email: &email, Role: &role, Password: &password}
 		hash, err := bcrypt.GenerateFromPassword([]byte(*inputUser.Password), bcrypt.DefaultCost)
 		hashStr := string(hash)
@@ -46,7 +46,7 @@ func TestRegister(t *testing.T) {
 		assert.Equal(t, user, result)
 	})
 
-	t.Run("invalid credentials", func(t *testing.T) {
+	t.Run("Failure_Invalid_Credentials", func(t *testing.T) {
 		inputUser := &domain.InputUser{Role: &role, Password: &password}
 
 		result, err := useCase.Register(inputUser)
@@ -71,17 +71,11 @@ func TestLogin(t *testing.T) {
 		log.Error(err)
 		return
 	}
-	_, err = auth.GenerateJWT("0", "moderator")
-	if err != nil {
-		log.Error(err)
-		return
-	}
-	password := "string"
 
+	password := "password"
+	email := "user@example.com"
+	role := "employee"
 	t.Run("success", func(t *testing.T) {
-		email := "user@example.com"
-		password := "password"
-		role := "employee"
 		userInput := domain.InputUser{
 			Role:     &role,
 			Email:    &email,
@@ -93,7 +87,6 @@ func TestLogin(t *testing.T) {
 			log.Error(err)
 		}
 		hashStr := string(hash)
-
 		user := &domain.User{
 			Email:    &email,
 			Password: &hashStr,
@@ -108,7 +101,8 @@ func TestLogin(t *testing.T) {
 		assert.Equal(t, user.Email, result.Email)
 		assert.Equal(t, user.Role, result.Role)
 	})
-	t.Run("invalid credentials", func(t *testing.T) {
+
+	t.Run("Failure_Invalid_Credentials", func(t *testing.T) {
 		inputUser := &domain.InputUser{
 			Password: &password,
 		}
@@ -118,11 +112,8 @@ func TestLogin(t *testing.T) {
 		assert.Equal(t, domain.ErrInvalidCredentials, err)
 		assert.Nil(t, result)
 	})
-	t.Run("user not found", func(t *testing.T) {
 
-		email := "user@example.com"
-		password := "password"
-		role := "employee"
+	t.Run("Failure_User_Not_Found", func(t *testing.T) {
 		userInput := domain.InputUser{
 			Role:     &role,
 			Email:    &email,
@@ -136,10 +127,8 @@ func TestLogin(t *testing.T) {
 		assert.Equal(t, domain.ErrFindUser, err)
 		assert.Nil(t, result)
 	})
-	t.Run("bcrypt compare error", func(t *testing.T) {
-		email := "user@example.com"
-		password := "password"
-		role := "employee"
+
+	t.Run("Failure_Bcrypt_Compare_Error", func(t *testing.T) {
 		userInput := domain.InputUser{
 			Role:     &role,
 			Email:    &email,
