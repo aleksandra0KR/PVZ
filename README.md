@@ -88,6 +88,8 @@ go tool cover -html=coverage.out -o coverage.html
 - Закрывает приёмку заказов
 
 
-
-
+### Сервисы:
+- http по умолчанию на порту 8080
+- grpc по умолчанию на порту 3000
+- prometheus по умолчанию на порту 9000
 
