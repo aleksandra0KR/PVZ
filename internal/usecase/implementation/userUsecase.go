@@ -1,9 +1,9 @@
 package implementation
 
 import (
-	"errors"
 	"final/internal/domain"
 	"final/internal/repository"
+	log "github.com/sirupsen/logrus"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -17,12 +17,14 @@ func NewUserUseCase(userRepository repository.UserRepository) *UserUseCase {
 
 func (uc *UserUseCase) Register(inputUser *domain.InputUser) (*domain.User, error) {
 	if !checkUserData(inputUser) {
-		return nil, errors.New("user data is invalid")
+		return nil, domain.ErrInvalidCredentials
 	}
+
 	hash, err := bcrypt.GenerateFromPassword([]byte(*inputUser.Password), bcrypt.DefaultCost)
 	hashStr := string(hash)
 	if err != nil {
-		return nil, err
+		log.Error(err)
+		return nil, domain.ErrRegisterUser
 	}
 
 	user := &domain.User{
@@ -42,17 +44,18 @@ func checkUserData(user *domain.InputUser) bool {
 
 func (uc *UserUseCase) Login(inputUser *domain.InputUser) (*domain.User, error) {
 	if !checkUserData(inputUser) {
-		return nil, errors.New("user data is invalid")
+		return nil, domain.ErrInvalidCredentials
 	}
 	user, err := uc.userRepository.GetUserByEmail(*inputUser.Email)
 	if err != nil {
 		return nil, err
 	} else if user == nil {
-		return nil, errors.New("user not found")
+		return nil, domain.ErrFindUser
 	}
 
 	if err = bcrypt.CompareHashAndPassword([]byte(*user.Password), []byte(*inputUser.Password)); err != nil {
-		return nil, errors.New("invalid password")
+		log.Error(err)
+		return nil, domain.ErrInvalidCredentials
 	}
 	return user, nil
 }

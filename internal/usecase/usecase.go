@@ -6,6 +6,7 @@ import (
 	"final/internal/usecase/implementation"
 )
 
+//go:generate mockgen -source=usecase.go -destination=mocks/mock.go
 type Usecase struct {
 	PVZUsecase       PVZUsecase
 	ReceptionUsecase ReceptionUsecase
