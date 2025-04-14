@@ -4,8 +4,8 @@ import (
 	"database/sql"
 	"errors"
 	"final/internal/domain"
-	"fmt"
 	"github.com/jmoiron/sqlx"
+	log "github.com/sirupsen/logrus"
 )
 
 type ReceptionRepository struct {
@@ -17,21 +17,40 @@ func NewReceptionRepository(db *sqlx.DB) *ReceptionRepository {
 }
 
 func (r *ReceptionRepository) CreateReception(reception *domain.Reception) (*domain.Reception, error) {
-	receptionID, err := r.getLastReceptionIDInProgressForPVZ(reception.PvzId)
+	tx, err := r.db.Beginx()
 	if err != nil {
-		return nil, err
-	} else if receptionID != nil {
-		return nil, fmt.Errorf("previous reception is still in progress for pvz with id: %s", *reception.PvzId)
+		log.Error(err)
+		return nil, domain.ErrCreateReception
+	}
+	defer func() {
+		if err != nil {
+			if rollbackErr := tx.Rollback(); rollbackErr != nil {
+				log.Errorf("rollback failed: %v", rollbackErr)
+			}
+		} else {
+			commitErr := tx.Commit()
+			if commitErr != nil {
+				log.Errorf("commit failed: %v", commitErr)
+			}
+		}
+	}()
+
+	receptionID, err := r.getLastReceptionIDInProgressForPVZTx(tx, reception.PvzId)
+	if receptionID != nil {
+		return nil, domain.ErrCreateReceptionBecauseOfPreviousReception
+	} else if err != nil {
+		return nil, domain.ErrCreateReception
 	}
 
 	query := `INSERT INTO receptions (id, date_time, pvz_id, status)
               VALUES (COALESCE($1, gen_random_uuid()), COALESCE($2, now()), $3,  COALESCE($4, status('in_progress')))
               RETURNING id, date_time, status`
 
-	row := r.db.QueryRow(query, reception.ID, reception.DateTime, reception.PvzId, reception.Status)
+	row := tx.QueryRow(query, reception.ID, reception.DateTime, reception.PvzId, reception.Status)
 	err = row.Scan(&reception.ID, &reception.DateTime, &reception.Status)
 	if err != nil {
-		return nil, err
+		log.Error(err)
+		return nil, domain.ErrCreateReception
 	}
 	return reception, nil
 }
@@ -45,6 +64,7 @@ func (r *ReceptionRepository) getLastReceptionIDInProgressForPVZTx(tx *sqlx.Tx, 
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, nil
 		}
+		log.Error(err)
 		return nil, err
 	}
 	return &receptionID, nil
@@ -59,6 +79,7 @@ func (r *ReceptionRepository) getLastReceptionIDInProgressForPVZ(pvzID *string) 
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, nil
 		}
+		log.Error(err)
 		return nil, err
 	}
 	return &receptionID, nil
@@ -67,7 +88,7 @@ func (r *ReceptionRepository) getLastReceptionIDInProgressForPVZ(pvzID *string) 
 func (r *ReceptionRepository) CloseReception(pvzID *string) (*domain.Reception, error) {
 	receptionID, err := r.getLastReceptionIDInProgressForPVZ(pvzID)
 	if err != nil {
-		return nil, err
+		return nil, domain.ErrCloseReception
 	} else if receptionID == nil {
 		return nil, domain.ErrReceptionNotFound
 	}
@@ -80,7 +101,8 @@ func (r *ReceptionRepository) CloseReception(pvzID *string) (*domain.Reception, 
 	var reception domain.Reception
 	err = r.db.QueryRow(updateQuery, *receptionID).Scan(&reception.ID, &reception.DateTime, &reception.PvzId, &reception.Status)
 	if err != nil {
-		return nil, err
+		log.Error(err)
+		return nil, domain.ErrCloseReception
 	}
 	return &reception, nil
 }

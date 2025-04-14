@@ -7,6 +7,9 @@ import (
 	"time"
 )
 
+//go:generate mockgen -source=repository.go -destination=mocks/mock.g
+//go:generate mockgen -source=repository.go -destination=mocks/mock.go
+
 type Repository struct {
 	PvzRepository       PVZRepository
 	ReceptionRepository ReceptionRepository
@@ -27,6 +30,7 @@ func NewRepository(db *sqlx.DB) *Repository {
 type PVZRepository interface {
 	CreatePVZ(*domain.PVZ) (*domain.PVZ, error)
 	GetPVZInfo(*time.Time, *time.Time, int, int) ([]domain.PVZWithReceptions, error)
+	GetAllPVZ() ([]*domain.PVZ, error)
 }
 
 type ReceptionRepository interface {

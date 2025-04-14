@@ -5,7 +5,7 @@ import (
 	"final/internal/domain"
 	"github.com/Masterminds/squirrel"
 	"github.com/jmoiron/sqlx"
-	"log"
+	log "github.com/sirupsen/logrus"
 	"time"
 )
 
@@ -24,9 +24,39 @@ func (r *PVZRepository) CreatePVZ(pvz *domain.PVZ) (*domain.PVZ, error) {
 
 	row := r.db.QueryRow(query, pvz.ID, pvz.RegistrationDate, pvz.City)
 	if err := row.Scan(&pvz.ID, &pvz.RegistrationDate); err != nil {
-		return nil, err
+		log.Error(err)
+		return nil, domain.ErrCreatePVZ
 	}
 	return pvz, nil
+}
+
+func (r *PVZRepository) GetAllPVZ() ([]*domain.PVZ, error) {
+	query := `SELECT * FROM pvz`
+
+	rows, err := r.db.Query(query)
+	if err != nil {
+		log.Error(err)
+		return nil, domain.ErrGetPVZ
+	}
+	defer func(rows *sql.Rows) {
+		err = rows.Close()
+		if err != nil {
+			log.Error(err)
+		}
+	}(rows)
+
+	result := make([]*domain.PVZ, 0)
+	for rows.Next() {
+		var pvz domain.PVZ
+		err = rows.Scan(&pvz.ID, &pvz.RegistrationDate, &pvz.City)
+		if err != nil {
+			log.Error(err)
+			return nil, domain.ErrGetPVZ
+		}
+		result = append(result, &pvz)
+
+	}
+	return result, nil
 }
 
 func (r *PVZRepository) GetPVZInfo(startDate, endDate *time.Time, offset, limit int) ([]domain.PVZWithReceptions, error) {
@@ -55,17 +85,19 @@ func (r *PVZRepository) GetPVZInfo(startDate, endDate *time.Time, offset, limit 
 
 	sqlQuery, args, err := query.ToSql()
 	if err != nil {
-		return nil, err
+		log.Error(err)
+		return nil, domain.ErrGetPVZ
 	}
 
 	rows, err := r.db.Query(sqlQuery, args...)
 	if err != nil {
-		return nil, err
+		log.Error(err)
+		return nil, domain.ErrGetPVZ
 	}
 	defer func(rows *sql.Rows) {
 		err = rows.Close()
 		if err != nil {
-			log.Fatal(err) // TODO
+			log.Error(err)
 		}
 	}(rows)
 
@@ -82,10 +114,11 @@ func (r *PVZRepository) GetPVZInfo(startDate, endDate *time.Time, offset, limit 
 		err = rows.Scan(
 			&pvzID, &pvzDate, &city,
 			&receptionID, &receptionTime, &receptionStatus,
-			&productID, &productTime, &productType, &receptionID,
+			&productID, &productTime, &productType, new(sql.NullString),
 		)
 		if err != nil {
-			return nil, err
+			log.Error(err)
+			return nil, domain.ErrGetPVZ
 		}
 
 		id := pvzID.String

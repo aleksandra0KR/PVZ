@@ -2,7 +2,6 @@ package postgres
 
 import (
 	"final/internal/domain"
-	"fmt"
 	"github.com/jmoiron/sqlx"
 	log "github.com/sirupsen/logrus"
 )
@@ -19,24 +18,29 @@ func NewProductRepository(db *sqlx.DB, receptionRepository *ReceptionRepository)
 func (r *ProductRepository) CreateProduct(inputProduct *domain.InputProduct) (*domain.Product, error) {
 	tx, err := r.db.Beginx()
 	if err != nil {
-		return nil, err
+		log.Error(err)
+		return nil, domain.ErrCreateProduct
 	}
 	defer func() {
 		if err != nil {
 			if rollbackErr := tx.Rollback(); rollbackErr != nil {
-				log.Printf("rollback failed: %v", rollbackErr)
+				log.Errorf("rollback failed: %v", rollbackErr)
 			}
 		} else {
-			tx.Commit()
+			commitErr := tx.Commit()
+			if commitErr != nil {
+				log.Errorf("commit failed: %v", commitErr)
+			}
 		}
 	}()
 
 	receptionID, err := r.receptionRepository.getLastReceptionIDInProgressForPVZTx(tx, inputProduct.PvzId)
 	if err != nil {
-		return nil, err
+		return nil, domain.ErrCreateProduct
 	} else if receptionID == nil {
-		return nil, fmt.Errorf("no reception in progress for PVZ with ID: %s", *inputProduct.PvzId)
+		return nil, domain.ErrReceptionNotFound
 	}
+
 	var product domain.Product
 	product.ReceptionID = receptionID
 	product.Type = inputProduct.Type
@@ -47,7 +51,8 @@ func (r *ProductRepository) CreateProduct(inputProduct *domain.InputProduct) (*d
 	row := tx.QueryRow(query, product.ReceptionID, product.Type)
 	err = row.Scan(&product.ID, &product.DateTime)
 	if err != nil {
-		return nil, err
+		log.Error(err)
+		return nil, domain.ErrCreateProduct
 	}
 	return &product, nil
 }
@@ -55,27 +60,34 @@ func (r *ProductRepository) CreateProduct(inputProduct *domain.InputProduct) (*d
 func (r *ProductRepository) DeleteLastProductForPVZ(pvzId *string) error {
 	tx, err := r.db.Beginx()
 	if err != nil {
-		return err
+		log.Error(err)
+		return domain.ErrDeleteProduct
 	}
 	defer func() {
 		if err != nil {
 			if rollbackErr := tx.Rollback(); rollbackErr != nil {
-				log.Printf("rollback failed: %v", rollbackErr)
+				log.Errorf("rollback failed: %v", rollbackErr)
 			}
 		} else {
-			tx.Commit()
+			commitErr := tx.Commit()
+			if commitErr != nil {
+				log.Errorf("commit failed: %v", commitErr)
+			}
 		}
 	}()
+
 	receptionID, err := r.receptionRepository.getLastReceptionIDInProgressForPVZTx(tx, pvzId)
 	if err != nil {
-		return err
+		return domain.ErrDeleteProduct
 	} else if receptionID == nil {
-		return fmt.Errorf("no reception in progress for PVZ with ID: %s", *pvzId)
+		return domain.ErrReceptionNotFound
 	}
 
 	productCount, err := r.getAmountOfProductsForReceptionTx(tx, receptionID)
-	if productCount == 0 {
-		return fmt.Errorf("no products to delete in the reception with ID: %s", *receptionID)
+	if err != nil {
+		return domain.ErrDeleteProduct
+	} else if productCount == 0 {
+		return domain.ErrNoProductsInReception
 	}
 
 	query := `
@@ -89,7 +101,8 @@ func (r *ProductRepository) DeleteLastProductForPVZ(pvzId *string) error {
 		)`
 	_, err = tx.Exec(query, *receptionID)
 	if err != nil {
-		return err
+		log.Error(err)
+		return domain.ErrDeleteProduct
 	}
 	return nil
 }
@@ -99,6 +112,7 @@ func (r *ProductRepository) getAmountOfProductsForReceptionTx(tx *sqlx.Tx, recep
 	query := `SELECT COUNT(*) FROM products WHERE reception_id = $1`
 	err := tx.QueryRow(query, *receptionId).Scan(&productCount)
 	if err != nil {
+		log.Error(err)
 		return 0, err
 	}
 	return productCount, nil

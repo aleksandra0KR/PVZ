@@ -1,10 +1,9 @@
 package postgres
 
 import (
-	"database/sql"
-	"errors"
 	"final/internal/domain"
 	"github.com/jmoiron/sqlx"
+	log "github.com/sirupsen/logrus"
 )
 
 type UserRepository struct {
@@ -17,10 +16,10 @@ func NewUserRepository(db *sqlx.DB) *UserRepository {
 
 func (r *UserRepository) Register(user *domain.User) (*domain.User, error) {
 	userGetByEmail, err := r.GetUserByEmail(*user.Email)
-	if err != nil {
-		return nil, err
+	if userGetByEmail != nil && err != nil {
+		return nil, domain.ErrCreateUser
 	} else if userGetByEmail != nil {
-		return nil, errors.New("user with such email already exists")
+		return nil, domain.ErrUserWithSuchEmailAlreadyExists
 	}
 
 	query := `INSERT INTO users (email, password, role)
@@ -29,7 +28,8 @@ func (r *UserRepository) Register(user *domain.User) (*domain.User, error) {
 	row := r.db.QueryRow(query, user.Email, user.Password, user.Role)
 	err = row.Scan(&user.ID)
 	if err != nil {
-		return nil, err
+		log.Error(err)
+		return nil, domain.ErrCreateUser
 	}
 	return user, nil
 }
@@ -37,10 +37,12 @@ func (r *UserRepository) Register(user *domain.User) (*domain.User, error) {
 func (r *UserRepository) GetUserByEmail(email string) (*domain.User, error) {
 	query := `SELECT id, email, password, role FROM users WHERE email = $1`
 	row := r.db.QueryRow(query, email)
+
 	var user domain.User
 	err := row.Scan(&user.ID, &user.Email, &user.Password, &user.Role)
-	if errors.Is(err, sql.ErrNoRows) {
-		return nil, nil
+	if err != nil {
+		log.Error(err)
+		return nil, domain.ErrFindUser
 	}
-	return &user, err
+	return &user, nil
 }
