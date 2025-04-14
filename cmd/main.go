@@ -60,12 +60,11 @@ func main() {
 	}()
 
 	go func() {
-
 		grpcPort := os.Getenv("GRPS_PORT")
 		if grpcPort == "" {
-			grpcPort = ":3000"
+			grpcPort = "3000"
 		}
-		grpcListener, errGrpc := net.Listen("tcp:", grpcPort)
+		grpcListener, errGrpc := net.Listen("tcp", ":"+grpcPort)
 		if errGrpc != nil {
 			log.Fatalf("failed to listen on port %s: %v", grpcPort, errGrpc)
 		}
@@ -93,7 +92,7 @@ func main() {
 		if errMetrics != nil {
 			log.Fatalf("Prometheus server failed: %v", err)
 		}
-		log.Info("Prometheus server is running on port %s", portMetrics)
+		log.Infof("Prometheus server is running on port %s", portMetrics)
 	}()
 
 	stop := make(chan os.Signal, 1)
