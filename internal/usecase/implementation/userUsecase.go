@@ -1,6 +1,7 @@
 package implementation
 
 import (
+	"context"
 	"final/internal/domain"
 	"final/internal/repository"
 	log "github.com/sirupsen/logrus"
@@ -15,7 +16,7 @@ func NewUserUseCase(userRepository repository.UserRepository) *UserUseCase {
 	return &UserUseCase{userRepository: userRepository}
 }
 
-func (uc *UserUseCase) Register(inputUser *domain.InputUser) (*domain.User, error) {
+func (uc *UserUseCase) Register(ctx context.Context, inputUser *domain.InputUser) (*domain.User, error) {
 	if !checkUserData(inputUser) {
 		return nil, domain.ErrInvalidCredentials
 	}
@@ -32,7 +33,7 @@ func (uc *UserUseCase) Register(inputUser *domain.InputUser) (*domain.User, erro
 		Role:  inputUser.Role,
 	}
 	user.Password = &hashStr
-	return uc.userRepository.Register(user)
+	return uc.userRepository.Register(ctx, user)
 }
 
 func checkUserData(user *domain.InputUser) bool {
@@ -42,12 +43,12 @@ func checkUserData(user *domain.InputUser) bool {
 	return true
 }
 
-func (uc *UserUseCase) Login(inputUser *domain.InputUser) (*domain.User, error) {
+func (uc *UserUseCase) Login(ctx context.Context, inputUser *domain.InputUser) (*domain.User, error) {
 	if !checkUserData(inputUser) {
 		return nil, domain.ErrInvalidCredentials
 	}
 
-	user, err := uc.userRepository.GetUserByEmail(*inputUser.Email)
+	user, err := uc.userRepository.GetUserByEmail(ctx, *inputUser.Email)
 	if err != nil {
 		return nil, err
 	} else if user == nil {

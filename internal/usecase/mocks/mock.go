@@ -5,6 +5,7 @@
 package mock_usecase
 
 import (
+	context "context"
 	domain "final/internal/domain"
 	reflect "reflect"
 
@@ -35,33 +36,33 @@ func (m *MockPVZUsecase) EXPECT() *MockPVZUsecaseMockRecorder {
 }
 
 // CreatePVZ mocks base method.
-func (m *MockPVZUsecase) CreatePVZ(arg0 *domain.PVZ) (*domain.PVZ, error) {
+func (m *MockPVZUsecase) CreatePVZ(arg0 context.Context, arg1 *domain.PVZ) (*domain.PVZ, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreatePVZ", arg0)
+	ret := m.ctrl.Call(m, "CreatePVZ", arg0, arg1)
 	ret0, _ := ret[0].(*domain.PVZ)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // CreatePVZ indicates an expected call of CreatePVZ.
-func (mr *MockPVZUsecaseMockRecorder) CreatePVZ(arg0 interface{}) *gomock.Call {
+func (mr *MockPVZUsecaseMockRecorder) CreatePVZ(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreatePVZ", reflect.TypeOf((*MockPVZUsecase)(nil).CreatePVZ), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreatePVZ", reflect.TypeOf((*MockPVZUsecase)(nil).CreatePVZ), arg0, arg1)
 }
 
 // GetPVZInfo mocks base method.
-func (m *MockPVZUsecase) GetPVZInfo(arg0, arg1, arg2, arg3 string) ([]domain.PVZWithReceptions, error) {
+func (m *MockPVZUsecase) GetPVZInfo(arg0 context.Context, arg1, arg2, arg3, arg4 string) ([]domain.PVZWithReceptions, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetPVZInfo", arg0, arg1, arg2, arg3)
+	ret := m.ctrl.Call(m, "GetPVZInfo", arg0, arg1, arg2, arg3, arg4)
 	ret0, _ := ret[0].([]domain.PVZWithReceptions)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetPVZInfo indicates an expected call of GetPVZInfo.
-func (mr *MockPVZUsecaseMockRecorder) GetPVZInfo(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
+func (mr *MockPVZUsecaseMockRecorder) GetPVZInfo(arg0, arg1, arg2, arg3, arg4 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPVZInfo", reflect.TypeOf((*MockPVZUsecase)(nil).GetPVZInfo), arg0, arg1, arg2, arg3)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPVZInfo", reflect.TypeOf((*MockPVZUsecase)(nil).GetPVZInfo), arg0, arg1, arg2, arg3, arg4)
 }
 
 // MockReceptionUsecase is a mock of ReceptionUsecase interface.
@@ -88,33 +89,33 @@ func (m *MockReceptionUsecase) EXPECT() *MockReceptionUsecaseMockRecorder {
 }
 
 // CloseReception mocks base method.
-func (m *MockReceptionUsecase) CloseReception(arg0 *string) (*domain.Reception, error) {
+func (m *MockReceptionUsecase) CloseReception(arg0 context.Context, arg1 *string) (*domain.Reception, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CloseReception", arg0)
+	ret := m.ctrl.Call(m, "CloseReception", arg0, arg1)
 	ret0, _ := ret[0].(*domain.Reception)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // CloseReception indicates an expected call of CloseReception.
-func (mr *MockReceptionUsecaseMockRecorder) CloseReception(arg0 interface{}) *gomock.Call {
+func (mr *MockReceptionUsecaseMockRecorder) CloseReception(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CloseReception", reflect.TypeOf((*MockReceptionUsecase)(nil).CloseReception), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CloseReception", reflect.TypeOf((*MockReceptionUsecase)(nil).CloseReception), arg0, arg1)
 }
 
 // CreateReception mocks base method.
-func (m *MockReceptionUsecase) CreateReception(arg0 *domain.Reception) (*domain.Reception, error) {
+func (m *MockReceptionUsecase) CreateReception(arg0 context.Context, arg1 *domain.Reception) (*domain.Reception, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateReception", arg0)
+	ret := m.ctrl.Call(m, "CreateReception", arg0, arg1)
 	ret0, _ := ret[0].(*domain.Reception)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // CreateReception indicates an expected call of CreateReception.
-func (mr *MockReceptionUsecaseMockRecorder) CreateReception(arg0 interface{}) *gomock.Call {
+func (mr *MockReceptionUsecaseMockRecorder) CreateReception(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateReception", reflect.TypeOf((*MockReceptionUsecase)(nil).CreateReception), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateReception", reflect.TypeOf((*MockReceptionUsecase)(nil).CreateReception), arg0, arg1)
 }
 
 // MockProductUsecase is a mock of ProductUsecase interface.
@@ -141,32 +142,32 @@ func (m *MockProductUsecase) EXPECT() *MockProductUsecaseMockRecorder {
 }
 
 // CreateProduct mocks base method.
-func (m *MockProductUsecase) CreateProduct(arg0 *domain.InputProduct) (*domain.Product, error) {
+func (m *MockProductUsecase) CreateProduct(arg0 context.Context, arg1 *domain.InputProduct) (*domain.Product, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateProduct", arg0)
+	ret := m.ctrl.Call(m, "CreateProduct", arg0, arg1)
 	ret0, _ := ret[0].(*domain.Product)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // CreateProduct indicates an expected call of CreateProduct.
-func (mr *MockProductUsecaseMockRecorder) CreateProduct(arg0 interface{}) *gomock.Call {
+func (mr *MockProductUsecaseMockRecorder) CreateProduct(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateProduct", reflect.TypeOf((*MockProductUsecase)(nil).CreateProduct), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateProduct", reflect.TypeOf((*MockProductUsecase)(nil).CreateProduct), arg0, arg1)
 }
 
 // DeleteLastProductForPVZ mocks base method.
-func (m *MockProductUsecase) DeleteLastProductForPVZ(arg0 *string) error {
+func (m *MockProductUsecase) DeleteLastProductForPVZ(arg0 context.Context, arg1 *string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteLastProductForPVZ", arg0)
+	ret := m.ctrl.Call(m, "DeleteLastProductForPVZ", arg0, arg1)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // DeleteLastProductForPVZ indicates an expected call of DeleteLastProductForPVZ.
-func (mr *MockProductUsecaseMockRecorder) DeleteLastProductForPVZ(arg0 interface{}) *gomock.Call {
+func (mr *MockProductUsecaseMockRecorder) DeleteLastProductForPVZ(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteLastProductForPVZ", reflect.TypeOf((*MockProductUsecase)(nil).DeleteLastProductForPVZ), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteLastProductForPVZ", reflect.TypeOf((*MockProductUsecase)(nil).DeleteLastProductForPVZ), arg0, arg1)
 }
 
 // MockUserUsecase is a mock of UserUsecase interface.
@@ -193,31 +194,31 @@ func (m *MockUserUsecase) EXPECT() *MockUserUsecaseMockRecorder {
 }
 
 // Login mocks base method.
-func (m *MockUserUsecase) Login(arg0 *domain.InputUser) (*domain.User, error) {
+func (m *MockUserUsecase) Login(arg0 context.Context, arg1 *domain.InputUser) (*domain.User, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Login", arg0)
+	ret := m.ctrl.Call(m, "Login", arg0, arg1)
 	ret0, _ := ret[0].(*domain.User)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Login indicates an expected call of Login.
-func (mr *MockUserUsecaseMockRecorder) Login(arg0 interface{}) *gomock.Call {
+func (mr *MockUserUsecaseMockRecorder) Login(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Login", reflect.TypeOf((*MockUserUsecase)(nil).Login), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Login", reflect.TypeOf((*MockUserUsecase)(nil).Login), arg0, arg1)
 }
 
 // Register mocks base method.
-func (m *MockUserUsecase) Register(arg0 *domain.InputUser) (*domain.User, error) {
+func (m *MockUserUsecase) Register(arg0 context.Context, arg1 *domain.InputUser) (*domain.User, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Register", arg0)
+	ret := m.ctrl.Call(m, "Register", arg0, arg1)
 	ret0, _ := ret[0].(*domain.User)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Register indicates an expected call of Register.
-func (mr *MockUserUsecaseMockRecorder) Register(arg0 interface{}) *gomock.Call {
+func (mr *MockUserUsecaseMockRecorder) Register(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Register", reflect.TypeOf((*MockUserUsecase)(nil).Register), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Register", reflect.TypeOf((*MockUserUsecase)(nil).Register), arg0, arg1)
 }

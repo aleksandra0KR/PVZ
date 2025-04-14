@@ -1,6 +1,7 @@
 package implementation
 
 import (
+	"context"
 	"final/internal/domain"
 	"final/internal/repository/mocks"
 	"github.com/golang/mock/gomock"
@@ -28,13 +29,14 @@ func TestCreateReception(t *testing.T) {
 	mockRepo := mock_repository.NewMockReceptionRepository(ctrl)
 	useCase := NewReceptionUseCase(mockRepo)
 
+	ctx := context.Background()
 	t.Run("Successful_Create_Reception", func(t *testing.T) {
 		reception := &domain.Reception{PvzId: &PvzId}
 		outputReception := &domain.Reception{PvzId: &PvzId, ID: &id, DateTime: &dateTime, Status: &status}
 
-		mockRepo.EXPECT().CreateReception(reception).Return(outputReception, nil)
+		mockRepo.EXPECT().CreateReception(ctx, reception).Return(outputReception, nil)
 
-		result, err := useCase.CreateReception(reception)
+		result, err := useCase.CreateReception(ctx, reception)
 		assert.NoError(t, err)
 		assert.Equal(t, outputReception, result)
 	})
@@ -42,7 +44,7 @@ func TestCreateReception(t *testing.T) {
 	t.Run("Failure_nil_pvzId", func(t *testing.T) {
 		reception := &domain.Reception{}
 
-		result, err := useCase.CreateReception(reception)
+		result, err := useCase.CreateReception(ctx, reception)
 		assert.Error(t, err)
 		assert.Equal(t, domain.ErrInvalidInputData, err)
 		assert.Nil(t, result)
@@ -65,12 +67,13 @@ func TestCloseReception(t *testing.T) {
 	mockRepo := mock_repository.NewMockReceptionRepository(ctrl)
 	useCase := NewReceptionUseCase(mockRepo)
 
+	ctx := context.Background()
 	t.Run("Successful_Close_Reception", func(t *testing.T) {
 		outputReception := &domain.Reception{PvzId: &PvzId, ID: &id, DateTime: &dateTime, Status: &status}
 
-		mockRepo.EXPECT().CloseReception(&PvzId).Return(outputReception, nil)
+		mockRepo.EXPECT().CloseReception(ctx, &PvzId).Return(outputReception, nil)
 
-		result, err := useCase.CloseReception(&PvzId)
+		result, err := useCase.CloseReception(ctx, &PvzId)
 		assert.NoError(t, err)
 		assert.Equal(t, outputReception, result)
 	})
@@ -78,7 +81,7 @@ func TestCloseReception(t *testing.T) {
 	t.Run("Failure_nil_pvzId", func(t *testing.T) {
 		var pvzID *string
 
-		result, err := useCase.CloseReception(pvzID)
+		result, err := useCase.CloseReception(ctx, pvzID)
 		assert.Error(t, err)
 		assert.Equal(t, domain.ErrInvalidInputData, err)
 		assert.Nil(t, result)
@@ -87,7 +90,7 @@ func TestCloseReception(t *testing.T) {
 	t.Run("Failure_Empty_pvzId", func(t *testing.T) {
 		pvzID := ""
 
-		result, err := useCase.CloseReception(&pvzID)
+		result, err := useCase.CloseReception(ctx, &pvzID)
 		assert.Error(t, err)
 		assert.Equal(t, domain.ErrInvalidInputData, err)
 		assert.Nil(t, result)

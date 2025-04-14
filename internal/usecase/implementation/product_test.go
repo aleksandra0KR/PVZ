@@ -1,6 +1,7 @@
 package implementation
 
 import (
+	"context"
 	"final/internal/domain"
 	"final/internal/repository/mocks"
 	"github.com/golang/mock/gomock"
@@ -28,7 +29,7 @@ func TestCreateProduct(t *testing.T) {
 	if err != nil {
 		log.Error(err)
 	}
-
+	ctx := context.Background()
 	t.Run("Successful_Create_Product", func(t *testing.T) {
 		inputProduct := &domain.InputProduct{
 			Type:  &productType,
@@ -42,9 +43,9 @@ func TestCreateProduct(t *testing.T) {
 			ReceptionID: &receptionId,
 		}
 
-		mockRepo.EXPECT().CreateProduct(inputProduct).Return(product, nil)
+		mockRepo.EXPECT().CreateProduct(ctx, inputProduct).Return(product, nil)
 
-		result, err := useCase.CreateProduct(inputProduct)
+		result, err := useCase.CreateProduct(ctx, inputProduct)
 		assert.NoError(t, err)
 		assert.Equal(t, product, result)
 	})
@@ -55,7 +56,7 @@ func TestCreateProduct(t *testing.T) {
 			PvzId: &pvzId,
 		}
 
-		result, err := useCase.CreateProduct(inputProduct)
+		result, err := useCase.CreateProduct(ctx, inputProduct)
 		assert.Error(t, err)
 		assert.Equal(t, domain.ErrInvalidProductType, err)
 		assert.Nil(t, result)
@@ -67,7 +68,7 @@ func TestCreateProduct(t *testing.T) {
 			PvzId: &pvzId,
 		}
 
-		result, err := useCase.CreateProduct(inputProduct)
+		result, err := useCase.CreateProduct(ctx, inputProduct)
 		assert.Error(t, err)
 		assert.Equal(t, domain.ErrInvalidInputData, err)
 		assert.Nil(t, result)
@@ -79,7 +80,7 @@ func TestCreateProduct(t *testing.T) {
 			PvzId: nil,
 		}
 
-		result, err := useCase.CreateProduct(inputProduct)
+		result, err := useCase.CreateProduct(ctx, inputProduct)
 		assert.Error(t, err)
 		assert.Equal(t, domain.ErrEmptyPvzID, err)
 		assert.Nil(t, result)
@@ -93,22 +94,23 @@ func TestDeleteLastProductForPVZ(t *testing.T) {
 	mockRepo := mock_repository.NewMockProductRepository(ctrl)
 	useCase := NewProductUseCase(mockRepo)
 
+	ctx := context.Background()
 	t.Run("Successful_Delete_Product", func(t *testing.T) {
 		pvzId := "1"
-		mockRepo.EXPECT().DeleteLastProductForPVZ(&pvzId).Return(nil)
-		err := useCase.DeleteLastProductForPVZ(&pvzId)
+		mockRepo.EXPECT().DeleteLastProductForPVZ(ctx, &pvzId).Return(nil)
+		err := useCase.DeleteLastProductForPVZ(ctx, &pvzId)
 		assert.NoError(t, err)
 	})
 
 	t.Run("Failure_Empty_pvzId", func(t *testing.T) {
 		var pvzId *string
-		err := useCase.DeleteLastProductForPVZ(pvzId)
+		err := useCase.DeleteLastProductForPVZ(ctx, pvzId)
 		assert.Error(t, err)
 		assert.Equal(t, domain.ErrEmptyPvzID, err)
 	})
 
 	t.Run("Failure_Nil_pvzId", func(t *testing.T) {
-		err := useCase.DeleteLastProductForPVZ(nil)
+		err := useCase.DeleteLastProductForPVZ(ctx, nil)
 		assert.Error(t, err)
 		assert.Equal(t, domain.ErrEmptyPvzID, err)
 	})

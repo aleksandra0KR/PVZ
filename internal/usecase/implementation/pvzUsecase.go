@@ -1,6 +1,7 @@
 package implementation
 
 import (
+	"context"
 	"final/internal/domain"
 	"final/internal/repository"
 	log "github.com/sirupsen/logrus"
@@ -16,15 +17,15 @@ func NewPVZUseCase(pvzRepository repository.PVZRepository) *PVZUseCase {
 	return &PVZUseCase{pvzRepository: pvzRepository}
 }
 
-func (uc *PVZUseCase) CreatePVZ(pvz *domain.PVZ) (*domain.PVZ, error) {
+func (uc *PVZUseCase) CreatePVZ(ctx context.Context, pvz *domain.PVZ) (*domain.PVZ, error) {
 	err := isValidCity(pvz.City)
 	if err != nil {
 		return nil, err
 	}
-	return uc.pvzRepository.CreatePVZ(pvz)
+	return uc.pvzRepository.CreatePVZ(ctx, pvz)
 }
 
-func (uc *PVZUseCase) GetPVZInfo(startDateStr, endDateStr, pageStr, limitStr string) ([]domain.PVZWithReceptions, error) {
+func (uc *PVZUseCase) GetPVZInfo(ctx context.Context, startDateStr, endDateStr, pageStr, limitStr string) ([]domain.PVZWithReceptions, error) {
 	var startDate, endDate *time.Time
 	if startDateStr != "" {
 		startDateTime, err := time.Parse(time.RFC3339, startDateStr)
@@ -66,7 +67,7 @@ func (uc *PVZUseCase) GetPVZInfo(startDateStr, endDateStr, pageStr, limitStr str
 
 	offset := (page - 1) * limit
 
-	pvzInfo, err := uc.pvzRepository.GetPVZInfo(startDate, endDate, offset, limit)
+	pvzInfo, err := uc.pvzRepository.GetPVZInfo(ctx, startDate, endDate, offset, limit)
 	if err != nil {
 		return nil, domain.ErrGetPVZInfo
 	}

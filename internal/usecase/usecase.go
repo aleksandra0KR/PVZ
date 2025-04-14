@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"context"
 	"final/internal/domain"
 	"final/internal/repository"
 	"final/internal/usecase/implementation"
@@ -24,21 +25,21 @@ func NewUseCase(repository *repository.Repository) *Usecase {
 }
 
 type PVZUsecase interface {
-	CreatePVZ(*domain.PVZ) (*domain.PVZ, error)
-	GetPVZInfo(string, string, string, string) ([]domain.PVZWithReceptions, error)
+	CreatePVZ(context.Context, *domain.PVZ) (*domain.PVZ, error)
+	GetPVZInfo(context.Context, string, string, string, string) ([]domain.PVZWithReceptions, error)
 }
 
 type ReceptionUsecase interface {
-	CreateReception(*domain.Reception) (*domain.Reception, error)
-	CloseReception(*string) (*domain.Reception, error)
+	CreateReception(context.Context, *domain.Reception) (*domain.Reception, error)
+	CloseReception(context.Context, *string) (*domain.Reception, error)
 }
 
 type ProductUsecase interface {
-	CreateProduct(*domain.InputProduct) (*domain.Product, error)
-	DeleteLastProductForPVZ(*string) error
+	CreateProduct(context.Context, *domain.InputProduct) (*domain.Product, error)
+	DeleteLastProductForPVZ(context.Context, *string) error
 }
 
 type UserUsecase interface {
-	Register(*domain.InputUser) (*domain.User, error)
-	Login(*domain.InputUser) (*domain.User, error)
+	Register(context.Context, *domain.InputUser) (*domain.User, error)
+	Login(context.Context, *domain.InputUser) (*domain.User, error)
 }

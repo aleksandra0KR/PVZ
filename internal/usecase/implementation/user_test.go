@@ -1,6 +1,7 @@
 package implementation
 
 import (
+	"context"
 	"final/internal/domain"
 	auth "final/internal/midleware"
 	"final/internal/repository/mocks"
@@ -24,6 +25,7 @@ func TestRegister(t *testing.T) {
 	role := "employee"
 	password := "password"
 
+	ctx := context.Background()
 	t.Run("Successful_Registration", func(t *testing.T) {
 		inputUser := &domain.InputUser{Email: &email, Role: &role, Password: &password}
 		hash, err := bcrypt.GenerateFromPassword([]byte(*inputUser.Password), bcrypt.DefaultCost)
@@ -39,9 +41,9 @@ func TestRegister(t *testing.T) {
 			Password: &hashStr,
 		}
 
-		mockRepo.EXPECT().Register(gomock.Any()).Return(user, nil)
+		mockRepo.EXPECT().Register(ctx, gomock.Any()).Return(user, nil)
 
-		result, err := useCase.Register(inputUser)
+		result, err := useCase.Register(ctx, inputUser)
 		assert.NoError(t, err)
 		assert.Equal(t, user, result)
 	})
@@ -49,7 +51,7 @@ func TestRegister(t *testing.T) {
 	t.Run("Failure_Invalid_Credentials", func(t *testing.T) {
 		inputUser := &domain.InputUser{Role: &role, Password: &password}
 
-		result, err := useCase.Register(inputUser)
+		result, err := useCase.Register(ctx, inputUser)
 		assert.Error(t, err)
 		assert.Equal(t, domain.ErrInvalidCredentials, err)
 		assert.Nil(t, result)
@@ -75,6 +77,8 @@ func TestLogin(t *testing.T) {
 	password := "password"
 	email := "user@example.com"
 	role := "employee"
+
+	ctx := context.Background()
 	t.Run("success", func(t *testing.T) {
 		userInput := domain.InputUser{
 			Role:     &role,
@@ -93,9 +97,9 @@ func TestLogin(t *testing.T) {
 			Role:     &role,
 		}
 
-		mockRepo.EXPECT().GetUserByEmail(email).Return(user, nil)
+		mockRepo.EXPECT().GetUserByEmail(ctx, email).Return(user, nil)
 
-		result, err := useCase.Login(&userInput)
+		result, err := useCase.Login(ctx, &userInput)
 		assert.NoError(t, err)
 		assert.NotNil(t, result)
 		assert.Equal(t, user.Email, result.Email)
@@ -107,7 +111,7 @@ func TestLogin(t *testing.T) {
 			Password: &password,
 		}
 
-		result, err := useCase.Login(inputUser)
+		result, err := useCase.Login(ctx, inputUser)
 		assert.Error(t, err)
 		assert.Equal(t, domain.ErrInvalidCredentials, err)
 		assert.Nil(t, result)
@@ -120,9 +124,9 @@ func TestLogin(t *testing.T) {
 			Password: &password,
 		}
 
-		mockRepo.EXPECT().GetUserByEmail(email).Return(nil, nil)
+		mockRepo.EXPECT().GetUserByEmail(ctx, email).Return(nil, nil)
 
-		result, err := useCase.Login(&userInput)
+		result, err := useCase.Login(ctx, &userInput)
 		assert.Error(t, err)
 		assert.Equal(t, domain.ErrFindUser, err)
 		assert.Nil(t, result)
@@ -144,9 +148,9 @@ func TestLogin(t *testing.T) {
 			Role:     &role,
 		}
 
-		mockRepo.EXPECT().GetUserByEmail(email).Return(user, nil)
+		mockRepo.EXPECT().GetUserByEmail(ctx, email).Return(user, nil)
 
-		result, err := useCase.Login(&userInput)
+		result, err := useCase.Login(ctx, &userInput)
 		assert.Error(t, err)
 		assert.Equal(t, domain.ErrInvalidCredentials, err)
 		assert.Nil(t, result)

@@ -1,6 +1,7 @@
 package implementation
 
 import (
+	"context"
 	"final/internal/domain"
 	"final/internal/repository/mocks"
 	"github.com/golang/mock/gomock"
@@ -26,6 +27,7 @@ func TestCreatePVZ(t *testing.T) {
 		log.Error(err)
 	}
 
+	ctx := context.Background()
 	t.Run("Successful_Create_Pvz", func(t *testing.T) {
 		pvz := &domain.PVZ{
 			ID:               &id,
@@ -34,8 +36,8 @@ func TestCreatePVZ(t *testing.T) {
 		}
 		outputPVZ := &domain.PVZ{City: &allowedCity, ID: &id, RegistrationDate: &dateTime}
 
-		mockRepo.EXPECT().CreatePVZ(pvz).Return(pvz, nil)
-		result, err := useCase.CreatePVZ(pvz)
+		mockRepo.EXPECT().CreatePVZ(ctx, pvz).Return(pvz, nil)
+		result, err := useCase.CreatePVZ(ctx, pvz)
 		assert.NoError(t, err)
 		assert.Equal(t, outputPVZ, result)
 	})
@@ -47,7 +49,7 @@ func TestCreatePVZ(t *testing.T) {
 			City:             &wrongCity,
 		}
 
-		result, err := useCase.CreatePVZ(pvz)
+		result, err := useCase.CreatePVZ(ctx, pvz)
 		assert.Error(t, err)
 		assert.Equal(t, domain.ErrInvalidCity, err)
 		assert.Nil(t, result)
@@ -59,7 +61,7 @@ func TestCreatePVZ(t *testing.T) {
 			RegistrationDate: &dateTime,
 		}
 
-		result, err := useCase.CreatePVZ(pvz)
+		result, err := useCase.CreatePVZ(ctx, pvz)
 		assert.Error(t, err)
 		assert.Equal(t, domain.ErrInvalidInputData, err)
 		assert.Nil(t, result)
@@ -82,6 +84,7 @@ func TestGetPVZInfo(t *testing.T) {
 		log.Error(err)
 	}
 
+	ctx := context.Background()
 	t.Run("Successful_Get_Pvz_Info", func(t *testing.T) {
 		startDateStr := "2025-01-01T00:00:00Z"
 		endDateStr := "2025-12-31T23:59:59Z"
@@ -104,9 +107,9 @@ func TestGetPVZInfo(t *testing.T) {
 			}},
 		}
 
-		mockRepo.EXPECT().GetPVZInfo(&startDate, &endDate, 0, 10).Return(pvzInfo, nil)
+		mockRepo.EXPECT().GetPVZInfo(ctx, &startDate, &endDate, 0, 10).Return(pvzInfo, nil)
 
-		result, err := useCase.GetPVZInfo(startDateStr, endDateStr, pageStr, limitStr)
+		result, err := useCase.GetPVZInfo(ctx, startDateStr, endDateStr, pageStr, limitStr)
 		assert.NoError(t, err)
 		assert.Equal(t, pvzInfo, result)
 	})
@@ -117,7 +120,7 @@ func TestGetPVZInfo(t *testing.T) {
 		pageStr := "1"
 		limitStr := "10"
 
-		result, err := useCase.GetPVZInfo(startDateStr, endDateStr, pageStr, limitStr)
+		result, err := useCase.GetPVZInfo(ctx, startDateStr, endDateStr, pageStr, limitStr)
 		assert.Error(t, err)
 		assert.Equal(t, domain.ErrGetPVZInfo, err)
 		assert.Nil(t, result)
@@ -129,7 +132,7 @@ func TestGetPVZInfo(t *testing.T) {
 		pageStr := "1"
 		limitStr := "10"
 
-		result, err := useCase.GetPVZInfo(startDateStr, endDateStr, pageStr, limitStr)
+		result, err := useCase.GetPVZInfo(ctx, startDateStr, endDateStr, pageStr, limitStr)
 		assert.Error(t, err)
 		assert.Equal(t, domain.ErrGetPVZInfo, err)
 		assert.Nil(t, result)
@@ -141,7 +144,7 @@ func TestGetPVZInfo(t *testing.T) {
 		pageStr := "invalid-page"
 		limitStr := "10"
 
-		result, err := useCase.GetPVZInfo(startDateStr, endDateStr, pageStr, limitStr)
+		result, err := useCase.GetPVZInfo(ctx, startDateStr, endDateStr, pageStr, limitStr)
 		assert.Error(t, err)
 		assert.Equal(t, domain.ErrGetPVZInfo, err)
 		assert.Nil(t, result)
@@ -153,7 +156,7 @@ func TestGetPVZInfo(t *testing.T) {
 		pageStr := "1"
 		limitStr := "invalid-limit"
 
-		result, err := useCase.GetPVZInfo(startDateStr, endDateStr, pageStr, limitStr)
+		result, err := useCase.GetPVZInfo(ctx, startDateStr, endDateStr, pageStr, limitStr)
 		assert.Error(t, err)
 		assert.Equal(t, domain.ErrGetPVZInfo, err)
 		assert.Nil(t, result)
