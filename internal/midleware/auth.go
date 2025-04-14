@@ -1,10 +1,10 @@
 package auth
 
 import (
-	"errors"
 	"final/internal/domain"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
+	log "github.com/sirupsen/logrus"
 	"net/http"
 	"os"
 	"strings"
@@ -36,30 +36,30 @@ func InitAuthFromConfig() error {
 	return nil
 }
 
-func AuthMiddleware() gin.HandlerFunc {
+func Middleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		tokenStr := c.GetHeader("Authorization")
 		if !strings.HasPrefix(tokenStr, "Bearer ") {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, domain.ErrorResponse{Message: "Missing bearer token"})
+			c.AbortWithStatusJSON(http.StatusUnauthorized, domain.ErrorResponse{Message: domain.ErrMissingToken.Error()})
 			return
 		}
 		tokenStr = strings.TrimPrefix(tokenStr, "Bearer ")
 
 		token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
 			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-				return nil, errors.New("unexpected signing method")
+				return nil, domain.ErrInvalidToken
 			}
 			return jwtSecret, nil
 		})
 
 		if err != nil || !token.Valid {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, domain.ErrorResponse{Message: "Invalid token"})
+			c.AbortWithStatusJSON(http.StatusUnauthorized, domain.ErrorResponse{Message: domain.ErrInvalidToken.Error()})
 			return
 		}
 
 		claims, ok := token.Claims.(jwt.MapClaims)
 		if !ok {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, domain.ErrorResponse{Message: "Invalid token claims"})
+			c.AbortWithStatusJSON(http.StatusUnauthorized, domain.ErrorResponse{Message: domain.ErrInvalidToken.Error()})
 			return
 		}
 
@@ -74,8 +74,11 @@ var allowedRoles = map[string]struct{}{
 	"moderator": {},
 }
 
-func CheckRole(role string) bool {
-	_, ok := allowedRoles[role]
+func CheckRole(role *string) bool {
+	if role == nil {
+		return false
+	}
+	_, ok := allowedRoles[*role]
 	return ok
 }
 
@@ -88,7 +91,7 @@ func RequireRole(allowedRoles ...string) gin.HandlerFunc {
 				return
 			}
 		}
-		c.JSON(http.StatusForbidden, domain.ErrorResponse{Message: "Forbidden"})
+		c.JSON(http.StatusForbidden, domain.ErrorResponse{Message: domain.ErrInvalidRole.Error()})
 		c.Abort()
 	}
 }
@@ -101,5 +104,10 @@ func GenerateJWT(userID, role string) (string, error) {
 		"iat":     time.Now().Unix(),
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString(jwtSecret)
+	tokenString, err := token.SignedString(jwtSecret)
+	if err != nil {
+		log.Error(err)
+		return "", domain.ErrGenerateToken
+	}
+	return tokenString, nil
 }
