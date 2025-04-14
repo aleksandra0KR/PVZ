@@ -34,6 +34,9 @@ func main() {
 	metrics.Init()
 
 	port := os.Getenv("HTTP_PORT")
+	if port == "" {
+		port = "8080"
+	}
 	db := database.InitializeDBPostgres(3, 10)
 	err := auth.InitAuthFromConfig()
 	if err != nil {
@@ -57,8 +60,12 @@ func main() {
 	}()
 
 	go func() {
-		grpcPort := ":" + os.Getenv("GRPS_PORT")
-		grpcListener, errGrpc := net.Listen("tcp", grpcPort)
+
+		grpcPort := os.Getenv("GRPS_PORT")
+		if grpcPort == "" {
+			grpcPort = ":3000"
+		}
+		grpcListener, errGrpc := net.Listen("tcp:", grpcPort)
 		if errGrpc != nil {
 			log.Fatalf("failed to listen on port %s: %v", grpcPort, errGrpc)
 		}
@@ -77,10 +84,16 @@ func main() {
 
 	go func() {
 		http.Handle("/metrics", promhttp.Handler())
-		if err := http.ListenAndServe(":"+os.Getenv("METRICS_PORT"), nil); err != nil {
+		portMetrics := os.Getenv("METRICS_PORT")
+		if portMetrics == "" {
+			portMetrics = "9000"
+		}
+
+		errMetrics := http.ListenAndServe(":"+portMetrics, nil)
+		if errMetrics != nil {
 			log.Fatalf("Prometheus server failed: %v", err)
 		}
-		log.Info("Prometheus server is running on port %s", os.Getenv("METRICS_PORT"))
+		log.Info("Prometheus server is running on port %s", portMetrics)
 	}()
 
 	stop := make(chan os.Signal, 1)

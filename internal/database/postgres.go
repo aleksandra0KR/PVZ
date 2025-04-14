@@ -64,7 +64,11 @@ func (postgresDB *Postgres) migrate() {
 		log.Fatalf("Failed to migrate: %v", err)
 	}
 
-	if err := goose.Up(postgresDB.db.DB, os.Getenv("PATH_TO_MIGRATIONS")); err != nil {
+	pathToMigrations := os.Getenv("PATH_TO_MIGRATIONS")
+	if pathToMigrations == "" {
+		pathToMigrations = "./migrations"
+	}
+	if err := goose.Up(postgresDB.db.DB, pathToMigrations); err != nil {
 		log.Fatalf("Failed to migrate: %v", err)
 	}
 }

@@ -22,14 +22,14 @@ func (h *Handler) Handle() http.Handler {
 
 	router.Use(metrics.PrometheusMiddleware())
 
-	router.POST("/pvz", auth.AuthMiddleware(), auth.RequireRole("moderator"), h.CreatePVZ)
-	router.GET("/pvz", auth.AuthMiddleware(), auth.RequireRole("employee", "moderator"), h.GetPVZList)
-	router.POST("/pvz/:pvzId/close_last_reception", auth.AuthMiddleware(), auth.RequireRole("employee"), h.CloseLastReception)
-	router.POST("/pvz/:pvzId/delete_last_product", auth.AuthMiddleware(), auth.RequireRole("employee"), h.DeleteLastProductForPVZ)
+	router.POST("/pvz", auth.Middleware(), auth.RequireRole("moderator"), h.CreatePVZ)
+	router.GET("/pvz", auth.Middleware(), auth.RequireRole("employee", "moderator"), h.GetPVZList)
+	router.POST("/pvz/:pvzId/close_last_reception", auth.Middleware(), auth.RequireRole("employee"), h.CloseLastReception)
+	router.POST("/pvz/:pvzId/delete_last_product", auth.Middleware(), auth.RequireRole("employee"), h.DeleteLastProductForPVZ)
 
-	router.POST("/receptions", auth.AuthMiddleware(), auth.RequireRole("employee"), h.CreateReception)
+	router.POST("/receptions", auth.Middleware(), auth.RequireRole("employee"), h.CreateReception)
 
-	router.POST("/products", auth.AuthMiddleware(), auth.RequireRole("employee"), h.CreateProduct)
+	router.POST("/products", auth.Middleware(), auth.RequireRole("employee"), h.CreateProduct)
 
 	router.POST("/dummyLogin", h.DummyLogin)
 	router.POST("/register", h.Register)
