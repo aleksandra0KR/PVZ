@@ -2,6 +2,7 @@ package controller_test
 
 import (
 	"bytes"
+	"context"
 	"final/internal/controller"
 	"final/internal/domain"
 	"final/internal/usecase"
@@ -25,6 +26,7 @@ func TestHandler_createPVZ(t *testing.T) {
 	str := "2025-04-12T20:10:25.102Z"
 	dateTime, err := time.Parse(layout, str)
 
+	ctx := context.Background()
 	if err != nil {
 		log.Error(err)
 	}
@@ -46,7 +48,7 @@ func TestHandler_createPVZ(t *testing.T) {
 			inputPVZ:  &domain.PVZ{City: &allowedCity, RegistrationDate: &dateTime, ID: &id},
 			outputPVZ: &domain.PVZ{City: &allowedCity, ID: &id, RegistrationDate: &dateTime},
 			mockBehavior: func(p *mock_usecase.MockPVZUsecase, inputPVZ *domain.PVZ) {
-				p.EXPECT().CreatePVZ(inputPVZ).Return(&domain.PVZ{City: &allowedCity, ID: &id, RegistrationDate: &dateTime}, nil)
+				p.EXPECT().CreatePVZ(ctx, inputPVZ).Return(&domain.PVZ{City: &allowedCity, ID: &id, RegistrationDate: &dateTime}, nil)
 			},
 			expectedStatusCode: http.StatusCreated,
 			expectedResponseBody: `{
@@ -62,7 +64,7 @@ func TestHandler_createPVZ(t *testing.T) {
 			inputPVZ:  &domain.PVZ{City: &allowedCity, ID: &id},
 			outputPVZ: &domain.PVZ{City: &allowedCity, ID: &id, RegistrationDate: &dateTime},
 			mockBehavior: func(p *mock_usecase.MockPVZUsecase, inputPVZ *domain.PVZ) {
-				p.EXPECT().CreatePVZ(inputPVZ).Return(&domain.PVZ{City: &allowedCity, ID: &id, RegistrationDate: &dateTime}, nil)
+				p.EXPECT().CreatePVZ(ctx, inputPVZ).Return(&domain.PVZ{City: &allowedCity, ID: &id, RegistrationDate: &dateTime}, nil)
 			},
 			expectedStatusCode: http.StatusCreated,
 			expectedResponseBody: `{
@@ -78,7 +80,7 @@ func TestHandler_createPVZ(t *testing.T) {
 			inputPVZ:  &domain.PVZ{City: &allowedCity, RegistrationDate: &dateTime},
 			outputPVZ: &domain.PVZ{City: &allowedCity, ID: &id, RegistrationDate: &dateTime},
 			mockBehavior: func(p *mock_usecase.MockPVZUsecase, inputPVZ *domain.PVZ) {
-				p.EXPECT().CreatePVZ(inputPVZ).Return(&domain.PVZ{City: &allowedCity, ID: &id, RegistrationDate: &dateTime}, nil)
+				p.EXPECT().CreatePVZ(ctx, inputPVZ).Return(&domain.PVZ{City: &allowedCity, ID: &id, RegistrationDate: &dateTime}, nil)
 			},
 			expectedStatusCode: http.StatusCreated,
 			expectedResponseBody: `{
@@ -92,7 +94,7 @@ func TestHandler_createPVZ(t *testing.T) {
 			inputPVZ:  &domain.PVZ{City: &allowedCity},
 			outputPVZ: &domain.PVZ{City: &allowedCity, ID: &id, RegistrationDate: &dateTime},
 			mockBehavior: func(p *mock_usecase.MockPVZUsecase, inputPVZ *domain.PVZ) {
-				p.EXPECT().CreatePVZ(inputPVZ).Return(&domain.PVZ{City: &allowedCity, ID: &id, RegistrationDate: &dateTime}, nil)
+				p.EXPECT().CreatePVZ(ctx, inputPVZ).Return(&domain.PVZ{City: &allowedCity, ID: &id, RegistrationDate: &dateTime}, nil)
 			},
 			expectedStatusCode: http.StatusCreated,
 			expectedResponseBody: `{
@@ -108,7 +110,7 @@ func TestHandler_createPVZ(t *testing.T) {
 			inputPVZ:  &domain.PVZ{ID: &id, RegistrationDate: &dateTime},
 			outputPVZ: nil,
 			mockBehavior: func(p *mock_usecase.MockPVZUsecase, input *domain.PVZ) {
-				p.EXPECT().CreatePVZ(input).Return(nil, domain.ErrInvalidInputData)
+				p.EXPECT().CreatePVZ(ctx, input).Return(nil, domain.ErrInvalidInputData)
 			},
 			expectedStatusCode:   http.StatusBadRequest,
 			expectedResponseBody: `{ "message":"invalid input data" }`,
@@ -122,7 +124,7 @@ func TestHandler_createPVZ(t *testing.T) {
 			inputPVZ:  &domain.PVZ{ID: &id, RegistrationDate: &dateTime, City: &wrongCity},
 			outputPVZ: nil,
 			mockBehavior: func(p *mock_usecase.MockPVZUsecase, input *domain.PVZ) {
-				p.EXPECT().CreatePVZ(input).Return(nil, domain.ErrInvalidCity)
+				p.EXPECT().CreatePVZ(ctx, input).Return(nil, domain.ErrInvalidCity)
 			},
 			expectedStatusCode:   http.StatusBadRequest,
 			expectedResponseBody: `{ "message":"invalid city" }`,
@@ -133,7 +135,7 @@ func TestHandler_createPVZ(t *testing.T) {
 			inputPVZ:  &domain.PVZ{},
 			outputPVZ: nil,
 			mockBehavior: func(p *mock_usecase.MockPVZUsecase, input *domain.PVZ) {
-				p.EXPECT().CreatePVZ(input).Return(nil, domain.ErrInvalidCity)
+				p.EXPECT().CreatePVZ(ctx, input).Return(nil, domain.ErrInvalidCity)
 			},
 			expectedStatusCode:   http.StatusBadRequest,
 			expectedResponseBody: `{ "message":"invalid city" }`,
@@ -144,7 +146,7 @@ func TestHandler_createPVZ(t *testing.T) {
 			inputPVZ:  nil,
 			outputPVZ: nil,
 			mockBehavior: func(p *mock_usecase.MockPVZUsecase, input *domain.PVZ) {
-				p.EXPECT().CreatePVZ(input).Times(0)
+				p.EXPECT().CreatePVZ(ctx, input).Times(0)
 			},
 			expectedStatusCode:   http.StatusBadRequest,
 			expectedResponseBody: `{ "message":"invalid input data" }`,
@@ -186,11 +188,12 @@ func TestGetPVZList(t *testing.T) {
 	services := usecase.Usecase{PVZUsecase: mockService}
 	handler := controller.NewHandler(services)
 
+	ctx := context.Background()
 	t.Run("Successful_Get_Pvz_List", func(t *testing.T) {
 		router := gin.Default()
 		router.GET("/pvz", handler.GetPVZList)
 
-		mockService.EXPECT().GetPVZInfo("2023-01-01", "2023-12-31", "1", "10").Return([]domain.PVZWithReceptions{}, nil)
+		mockService.EXPECT().GetPVZInfo(ctx, "2023-01-01", "2023-12-31", "1", "10").Return([]domain.PVZWithReceptions{}, nil)
 
 		req, _ := http.NewRequest("GET", "/pvz?startDate=2023-01-01&endDate=2023-12-31&page=1&limit=10", nil)
 		w := httptest.NewRecorder()

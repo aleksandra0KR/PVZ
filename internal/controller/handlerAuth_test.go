@@ -2,6 +2,7 @@ package controller
 
 import (
 	"bytes"
+	"context"
 	"final/internal/domain"
 	auth "final/internal/midleware"
 	"final/internal/usecase"
@@ -24,6 +25,7 @@ func TestHandler_registerUser(t *testing.T) {
 	role := "employee"
 	password := "password"
 
+	ctx := context.Background()
 	tests := []struct {
 		name                 string
 		inputBody            string
@@ -37,7 +39,7 @@ func TestHandler_registerUser(t *testing.T) {
 			inputBody: `{"email": "user@example.com", "role": "employee"}`,
 			inputUser: &domain.InputUser{Email: &email, Role: &role},
 			mockBehavior: func(u *mock_usecase.MockUserUsecase, input *domain.InputUser) {
-				u.EXPECT().Register(input).Return(nil, domain.ErrInvalidCredentials)
+				u.EXPECT().Register(ctx, input).Return(nil, domain.ErrInvalidCredentials)
 			},
 			expectedStatusCode: http.StatusBadRequest,
 			expectedResponseBody: `{
@@ -48,7 +50,7 @@ func TestHandler_registerUser(t *testing.T) {
 			inputBody: `{"password": "password", "role": "employee"}`,
 			inputUser: &domain.InputUser{Password: &password, Role: &role},
 			mockBehavior: func(u *mock_usecase.MockUserUsecase, input *domain.InputUser) {
-				u.EXPECT().Register(input).Return(nil, domain.ErrInvalidCredentials)
+				u.EXPECT().Register(ctx, input).Return(nil, domain.ErrInvalidCredentials)
 			},
 			expectedStatusCode: http.StatusBadRequest,
 			expectedResponseBody: `{
@@ -59,7 +61,7 @@ func TestHandler_registerUser(t *testing.T) {
 			inputBody: `{"email": "user@example.com", "password": "password"}`,
 			inputUser: &domain.InputUser{Email: &email, Password: &password},
 			mockBehavior: func(u *mock_usecase.MockUserUsecase, input *domain.InputUser) {
-				u.EXPECT().Register(input).Times(0)
+				u.EXPECT().Register(ctx, input).Times(0)
 			},
 			expectedStatusCode: http.StatusBadRequest,
 			expectedResponseBody: `{
@@ -70,7 +72,7 @@ func TestHandler_registerUser(t *testing.T) {
 			inputBody: `{"email": "user@example.com", "password": "password", "role": "employee"}`,
 			inputUser: &domain.InputUser{Email: &email, Role: &role, Password: &password},
 			mockBehavior: func(u *mock_usecase.MockUserUsecase, input *domain.InputUser) {
-				u.EXPECT().Register(input).Return(&domain.User{
+				u.EXPECT().Register(ctx, input).Return(&domain.User{
 					ID:    &id,
 					Email: &email,
 					Role:  &role,
@@ -208,6 +210,7 @@ func TestRegister(t *testing.T) {
 		Role:  &role,
 	}
 
+	ctx := context.Background()
 	tests := []struct {
 		name                 string
 		inputBody            string
@@ -224,7 +227,7 @@ func TestRegister(t *testing.T) {
 				  "role": "employee" }`,
 			inputUser: &userInput,
 			mockBehavior: func(p *mock_usecase.MockUserUsecase, input *domain.InputUser) {
-				p.EXPECT().Register(input).Return(&user, nil)
+				p.EXPECT().Register(ctx, input).Return(&user, nil)
 			},
 			expectedResponseBody: `{
 				  "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
@@ -241,7 +244,7 @@ func TestRegister(t *testing.T) {
 				Email: &email,
 				Role:  &role},
 			mockBehavior: func(p *mock_usecase.MockUserUsecase, input *domain.InputUser) {
-				p.EXPECT().Register(input).Return(nil, domain.ErrInvalidCredentials)
+				p.EXPECT().Register(ctx, input).Return(nil, domain.ErrInvalidCredentials)
 			},
 			expectedResponseBody: `{"message":"invalid email or password"}`,
 			expectedStatusCode:   http.StatusBadRequest,
@@ -255,7 +258,7 @@ func TestRegister(t *testing.T) {
 				Password: &password,
 				Role:     &role},
 			mockBehavior: func(p *mock_usecase.MockUserUsecase, input *domain.InputUser) {
-				p.EXPECT().Register(input).Return(nil, domain.ErrInvalidCredentials)
+				p.EXPECT().Register(ctx, input).Return(nil, domain.ErrInvalidCredentials)
 			},
 			expectedResponseBody: `{"message":"invalid email or password"}`,
 			expectedStatusCode:   http.StatusBadRequest,
@@ -269,7 +272,7 @@ func TestRegister(t *testing.T) {
 				Email:    &email,
 				Password: &password},
 			mockBehavior: func(p *mock_usecase.MockUserUsecase, input *domain.InputUser) {
-				p.EXPECT().Register(input).Times(0)
+				p.EXPECT().Register(ctx, input).Times(0)
 			},
 			expectedResponseBody: `{"message":"invalid role"}`,
 			expectedStatusCode:   http.StatusBadRequest,
@@ -281,7 +284,7 @@ func TestRegister(t *testing.T) {
 				   "password": "string"}`,
 			inputUser: nil,
 			mockBehavior: func(p *mock_usecase.MockUserUsecase, input *domain.InputUser) {
-				p.EXPECT().Register(input).Times(0)
+				p.EXPECT().Register(ctx, input).Times(0)
 			},
 			expectedResponseBody: `{ "message": "invalid input data" }`,
 			expectedStatusCode:   http.StatusBadRequest,
@@ -355,6 +358,8 @@ func TestLogin(t *testing.T) {
 		Role:     &role,
 	}
 	type mockBehavior func(p *mock_usecase.MockUserUsecase, input *domain.InputUser)
+
+	ctx := context.Background()
 	tests := []struct {
 		name                 string
 		inputBody            string
@@ -371,7 +376,7 @@ func TestLogin(t *testing.T) {
 				  "password": "string"}`,
 			inputUser: &userInput,
 			mockBehavior: func(p *mock_usecase.MockUserUsecase, input *domain.InputUser) {
-				p.EXPECT().Login(input).Return(&user, nil)
+				p.EXPECT().Login(ctx, input).Return(&user, nil)
 			},
 			expectedResponseBody: `"` + tokenEmployee + `"`,
 			expectedStatusCode:   http.StatusOK,
@@ -383,7 +388,7 @@ func TestLogin(t *testing.T) {
 				  "password": string"}`,
 			inputUser: nil,
 			mockBehavior: func(p *mock_usecase.MockUserUsecase, input *domain.InputUser) {
-				p.EXPECT().Login(input).Times(0)
+				p.EXPECT().Login(ctx, input).Times(0)
 			},
 			expectedResponseBody: `{"message":"invalid input data"}`,
 			expectedStatusCode:   http.StatusBadRequest,
@@ -398,7 +403,7 @@ func TestLogin(t *testing.T) {
 				Password: func() *string { s := "wrongpassword"; return &s }(),
 			},
 			mockBehavior: func(p *mock_usecase.MockUserUsecase, input *domain.InputUser) {
-				p.EXPECT().Login(input).Return(nil, domain.ErrInvalidCredentials)
+				p.EXPECT().Login(ctx, input).Return(nil, domain.ErrInvalidCredentials)
 			},
 			expectedResponseBody: `{"message":"invalid email or password"}`,
 			expectedStatusCode:   http.StatusUnauthorized,

@@ -50,7 +50,7 @@ func (h *Handler) CreatePVZ(c *gin.Context) {
 		return
 	}
 
-	pvz, err := h.service.PVZUsecase.CreatePVZ(pvz)
+	pvz, err := h.service.PVZUsecase.CreatePVZ(c.Request.Context(), pvz)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, domain.ErrorResponse{Message: err.Error()})
 		return
@@ -67,7 +67,7 @@ func (h *Handler) CreateReception(c *gin.Context) {
 		return
 	}
 
-	reception, err := h.service.ReceptionUsecase.CreateReception(reception)
+	reception, err := h.service.ReceptionUsecase.CreateReception(c.Request.Context(), reception)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, domain.ErrorResponse{Message: err.Error()})
 		return
@@ -80,7 +80,7 @@ func (h *Handler) CloseLastReception(c *gin.Context) {
 	pvzID := c.Param("pvzId")
 
 	c.Header("Content-Type", "application/json")
-	reception, err := h.service.ReceptionUsecase.CloseReception(&pvzID)
+	reception, err := h.service.ReceptionUsecase.CloseReception(c.Request.Context(), &pvzID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, domain.ErrorResponse{Message: err.Error()})
 		return
@@ -96,7 +96,7 @@ func (h *Handler) CreateProduct(c *gin.Context) {
 		return
 	}
 
-	product, err := h.service.ProductUsecase.CreateProduct(inputProduct)
+	product, err := h.service.ProductUsecase.CreateProduct(c.Request.Context(), inputProduct)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, domain.ErrorResponse{Message: err.Error()})
 		return
@@ -108,7 +108,7 @@ func (h *Handler) CreateProduct(c *gin.Context) {
 func (h *Handler) DeleteLastProductForPVZ(c *gin.Context) {
 	pvzID := c.Param("pvzId")
 
-	err := h.service.ProductUsecase.DeleteLastProductForPVZ(&pvzID)
+	err := h.service.ProductUsecase.DeleteLastProductForPVZ(c.Request.Context(), &pvzID)
 	if err != nil {
 		c.Header("Content-Type", "application/json")
 		c.JSON(http.StatusBadRequest, domain.ErrorResponse{Message: err.Error()})
@@ -123,7 +123,7 @@ func (h *Handler) GetPVZList(c *gin.Context) {
 	pageStr := c.Query("page")
 	limitStr := c.Query("limit")
 
-	pvzList, err := h.service.PVZUsecase.GetPVZInfo(startDateStr, endDateStr, pageStr, limitStr)
+	pvzList, err := h.service.PVZUsecase.GetPVZInfo(c.Request.Context(), startDateStr, endDateStr, pageStr, limitStr)
 	if err != nil {
 		c.Header("Content-Type", "application/json")
 		c.JSON(http.StatusOK, []domain.PVZWithReceptions{})
@@ -167,7 +167,7 @@ func (h *Handler) Register(c *gin.Context) {
 		return
 	}
 
-	user, err := h.service.UserUsecase.Register(&inputUser)
+	user, err := h.service.UserUsecase.Register(c.Request.Context(), &inputUser)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, domain.ErrorResponse{Message: err.Error()})
 		return
@@ -183,7 +183,7 @@ func (h *Handler) Login(c *gin.Context) {
 		return
 	}
 
-	user, err := h.service.UserUsecase.Login(&inputUser)
+	user, err := h.service.UserUsecase.Login(c.Request.Context(), &inputUser)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, domain.ErrorResponse{Message: err.Error()})
 		return

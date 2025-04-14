@@ -2,6 +2,7 @@ package controller_test
 
 import (
 	"bytes"
+	"context"
 	"final/internal/controller"
 	"final/internal/domain"
 	"final/internal/usecase"
@@ -31,6 +32,7 @@ func TestHandler_createProduct(t *testing.T) {
 	if err != nil {
 		log.Error(err)
 	}
+	ctx := context.Background()
 	tests := []struct {
 		name                 string
 		inputBody            string
@@ -48,7 +50,7 @@ func TestHandler_createProduct(t *testing.T) {
 			inputProduct:  &domain.InputProduct{Type: &productType, PvzId: &pvzId},
 			outputProduct: &domain.Product{Type: &productType, ID: &id, DateTime: &dateTime, ReceptionID: &receptionId},
 			mockBehavior: func(p *mock_usecase.MockProductUsecase, inputProduct *domain.InputProduct) {
-				p.EXPECT().CreateProduct(inputProduct).Return(&domain.Product{Type: &productType, ID: &id, DateTime: &dateTime, ReceptionID: &receptionId}, nil)
+				p.EXPECT().CreateProduct(ctx, inputProduct).Return(&domain.Product{Type: &productType, ID: &id, DateTime: &dateTime, ReceptionID: &receptionId}, nil)
 			},
 			expectedStatusCode: http.StatusCreated,
 			expectedResponseBody: `{
@@ -65,7 +67,7 @@ func TestHandler_createProduct(t *testing.T) {
 			inputProduct:  &domain.InputProduct{Type: &wrongProductType, PvzId: &pvzId},
 			outputProduct: nil,
 			mockBehavior: func(p *mock_usecase.MockProductUsecase, inputProduct *domain.InputProduct) {
-				p.EXPECT().CreateProduct(inputProduct).Return(nil, domain.ErrInvalidProductType)
+				p.EXPECT().CreateProduct(ctx, inputProduct).Return(nil, domain.ErrInvalidProductType)
 			},
 			expectedStatusCode:   http.StatusBadRequest,
 			expectedResponseBody: `{"message":"invalid product type"}`,
@@ -77,7 +79,7 @@ func TestHandler_createProduct(t *testing.T) {
 			inputProduct:  &domain.InputProduct{Type: nil, PvzId: &pvzId},
 			outputProduct: nil,
 			mockBehavior: func(p *mock_usecase.MockProductUsecase, inputProduct *domain.InputProduct) {
-				p.EXPECT().CreateProduct(inputProduct).Return(nil, domain.ErrInvalidProductType)
+				p.EXPECT().CreateProduct(ctx, inputProduct).Return(nil, domain.ErrInvalidProductType)
 			},
 			expectedStatusCode:   http.StatusBadRequest,
 			expectedResponseBody: `{"message":"invalid product type"}`,
@@ -88,7 +90,7 @@ func TestHandler_createProduct(t *testing.T) {
 			inputProduct:  &domain.InputProduct{Type: &productType},
 			outputProduct: nil,
 			mockBehavior: func(p *mock_usecase.MockProductUsecase, inputProduct *domain.InputProduct) {
-				p.EXPECT().CreateProduct(inputProduct).Return(nil, domain.ErrEmptyPvzID)
+				p.EXPECT().CreateProduct(ctx, inputProduct).Return(nil, domain.ErrEmptyPvzID)
 			},
 			expectedStatusCode:   http.StatusBadRequest,
 			expectedResponseBody: `{"message":"empty pvz id"}`,
@@ -101,7 +103,7 @@ func TestHandler_createProduct(t *testing.T) {
 			inputProduct:  nil,
 			outputProduct: nil,
 			mockBehavior: func(p *mock_usecase.MockProductUsecase, inputProduct *domain.InputProduct) {
-				p.EXPECT().CreateProduct(inputProduct).Times(0)
+				p.EXPECT().CreateProduct(ctx, inputProduct).Times(0)
 			},
 			expectedStatusCode:   http.StatusBadRequest,
 			expectedResponseBody: `{"message":"invalid input data"}`,
@@ -139,6 +141,7 @@ func TestHandler_deleteReception(t *testing.T) {
 	PvzId := "3fa85f64-5717-4562-b3fc-2c963f66afa6"
 	emptyId := ""
 
+	ctx := context.Background()
 	tests := []struct {
 		name                 string
 		inputParam           string
@@ -153,7 +156,7 @@ func TestHandler_deleteReception(t *testing.T) {
 			inputPvzID: &PvzId,
 
 			mockBehavior: func(p *mock_usecase.MockProductUsecase, input *string) {
-				p.EXPECT().DeleteLastProductForPVZ(input).Return(nil)
+				p.EXPECT().DeleteLastProductForPVZ(ctx, input).Return(nil)
 			},
 			expectedStatusCode:   http.StatusOK,
 			expectedResponseBody: ``},
@@ -162,7 +165,7 @@ func TestHandler_deleteReception(t *testing.T) {
 			inputParam: emptyId,
 			inputPvzID: &emptyId,
 			mockBehavior: func(p *mock_usecase.MockProductUsecase, inputProduct *string) {
-				p.EXPECT().DeleteLastProductForPVZ(inputProduct).Return(domain.ErrEmptyPvzID)
+				p.EXPECT().DeleteLastProductForPVZ(ctx, inputProduct).Return(domain.ErrEmptyPvzID)
 			},
 			expectedStatusCode:   http.StatusBadRequest,
 			expectedResponseBody: `{"message":"empty pvz id"}`,

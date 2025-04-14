@@ -2,6 +2,7 @@ package controller_test
 
 import (
 	"bytes"
+	"context"
 	"final/internal/controller"
 	"final/internal/domain"
 	"final/internal/usecase"
@@ -30,6 +31,7 @@ func TestHandler_createReception(t *testing.T) {
 		log.Error(err)
 	}
 
+	ctx := context.Background()
 	tests := []struct {
 		name                 string
 		inputBody            string
@@ -48,7 +50,7 @@ func TestHandler_createReception(t *testing.T) {
 			outputReception: &domain.Reception{PvzId: &PvzId, ID: &id, DateTime: &dateTime, Status: &status},
 
 			mockBehavior: func(p *mock_usecase.MockReceptionUsecase, input *domain.Reception) {
-				p.EXPECT().CreateReception(input).Return(&domain.Reception{PvzId: &PvzId, ID: &id, DateTime: &dateTime, Status: &status}, nil)
+				p.EXPECT().CreateReception(ctx, input).Return(&domain.Reception{PvzId: &PvzId, ID: &id, DateTime: &dateTime, Status: &status}, nil)
 			},
 			expectedStatusCode: http.StatusCreated,
 			expectedResponseBody: `{
@@ -64,7 +66,7 @@ func TestHandler_createReception(t *testing.T) {
 			outputReception: nil,
 
 			mockBehavior: func(p *mock_usecase.MockReceptionUsecase, input *domain.Reception) {
-				p.EXPECT().CreateReception(input).Return(nil, domain.ErrInvalidInputData)
+				p.EXPECT().CreateReception(ctx, input).Return(nil, domain.ErrInvalidInputData)
 			},
 			expectedStatusCode:   http.StatusBadRequest,
 			expectedResponseBody: `{ "message": "invalid input data" }`,
@@ -75,7 +77,7 @@ func TestHandler_createReception(t *testing.T) {
 			inputReception:  nil,
 			outputReception: nil,
 			mockBehavior: func(p *mock_usecase.MockReceptionUsecase, input *domain.Reception) {
-				p.EXPECT().CreateReception(input).Times(0)
+				p.EXPECT().CreateReception(ctx, input).Times(0)
 			},
 			expectedStatusCode:   http.StatusBadRequest,
 			expectedResponseBody: `{ "message": "invalid input data" }`,
@@ -120,7 +122,7 @@ func TestHandler_closeReception(t *testing.T) {
 	if err != nil {
 		log.Error(err)
 	}
-
+	ctx := context.Background()
 	tests := []struct {
 		name                 string
 		inputParam           string
@@ -137,7 +139,7 @@ func TestHandler_closeReception(t *testing.T) {
 			outputReception: &domain.Reception{PvzId: &PvzId, ID: &id, DateTime: &dateTime, Status: &status},
 
 			mockBehavior: func(p *mock_usecase.MockReceptionUsecase, input *string) {
-				p.EXPECT().CloseReception(input).Return(&domain.Reception{PvzId: &PvzId, ID: &id, DateTime: &dateTime, Status: &status}, nil)
+				p.EXPECT().CloseReception(ctx, input).Return(&domain.Reception{PvzId: &PvzId, ID: &id, DateTime: &dateTime, Status: &status}, nil)
 			},
 			expectedStatusCode: http.StatusOK,
 			expectedResponseBody: `{
@@ -153,7 +155,7 @@ func TestHandler_closeReception(t *testing.T) {
 			outputReception: nil,
 
 			mockBehavior: func(p *mock_usecase.MockReceptionUsecase, input *string) {
-				p.EXPECT().CloseReception(input).Return(nil, domain.ErrInvalidInputData)
+				p.EXPECT().CloseReception(ctx, input).Return(nil, domain.ErrInvalidInputData)
 			},
 			expectedStatusCode:   http.StatusBadRequest,
 			expectedResponseBody: `{ "message":"invalid input data" }`,
@@ -165,7 +167,7 @@ func TestHandler_closeReception(t *testing.T) {
 			outputReception: nil,
 
 			mockBehavior: func(p *mock_usecase.MockReceptionUsecase, input *string) {
-				p.EXPECT().CloseReception(input).Return(nil, domain.ErrInvalidInputData)
+				p.EXPECT().CloseReception(ctx, input).Return(nil, domain.ErrInvalidInputData)
 			},
 			expectedStatusCode:   http.StatusBadRequest,
 			expectedResponseBody: `{ "message":"invalid input data" }`,
