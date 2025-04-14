@@ -4,6 +4,7 @@ import (
 	"final/internal/domain"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
+	log "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
@@ -13,10 +14,18 @@ import (
 )
 
 func TestMain(m *testing.M) {
-	os.Setenv("SECRET_KEY", "test_secret")
-	os.Setenv("JWT_EXP", "1h")
+	err := os.Setenv("SECRET_KEY", "test_secret")
+	if err != nil {
+		log.Error(err)
+		return
+	}
+	err = os.Setenv("JWT_EXP", "1h")
+	if err != nil {
+		log.Error(err)
+		return
+	}
 
-	err := InitAuthFromConfig()
+	err = InitAuthFromConfig()
 	if err != nil {
 		panic(err)
 	}
@@ -25,28 +34,48 @@ func TestMain(m *testing.M) {
 	os.Exit(code)
 }
 func TestInitAuthFromConfig(t *testing.T) {
-	t.Run("success", func(t *testing.T) {
-		os.Setenv("SECRET_KEY", "test_secret")
-		os.Setenv("JWT_EXP", "1h")
+	t.Run("Successful_Auth", func(t *testing.T) {
+		err := os.Setenv("SECRET_KEY", "test_secret")
+		if err != nil {
+			log.Error(err)
+			return
+		}
+		err = os.Setenv("JWT_EXP", "1h")
+		if err != nil {
+			log.Error(err)
+			return
+		}
 
-		err := InitAuthFromConfig()
+		err = InitAuthFromConfig()
 		assert.NoError(t, err)
 		assert.Equal(t, "test_secret", string(jwtSecret))
 		assert.Equal(t, time.Hour, tokenTTL)
 	})
 
-	t.Run("missing secret", func(t *testing.T) {
-		os.Unsetenv("SECRET_KEY")
+	t.Run("Failure_Missing_Secret", func(t *testing.T) {
+		err := os.Unsetenv("SECRET_KEY")
+		if err != nil {
+			log.Error(err)
+			return
+		}
 
-		err := InitAuthFromConfig()
+		err = InitAuthFromConfig()
 		assert.ErrorIs(t, err, domain.ErrMissingSecret)
 	})
 
-	t.Run("invalid expiration", func(t *testing.T) {
-		os.Setenv("SECRET_KEY", "test_secret")
-		os.Setenv("JWT_EXP", "invalid")
+	t.Run("Failure_Invalid_Expiration", func(t *testing.T) {
+		err := os.Setenv("SECRET_KEY", "test_secret")
+		if err != nil {
+			log.Error(err)
+			return
+		}
+		err = os.Setenv("JWT_EXP", "invalid")
+		if err != nil {
+			log.Error(err)
+			return
+		}
 
-		err := InitAuthFromConfig()
+		err = InitAuthFromConfig()
 		assert.ErrorIs(t, err, domain.ErrInitAuthConfig)
 	})
 }
@@ -54,7 +83,7 @@ func TestInitAuthFromConfig(t *testing.T) {
 func TestAuthMiddleware(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
-	t.Run("valid token", func(t *testing.T) {
+	t.Run("Success_Valid_Token", func(t *testing.T) {
 		router := gin.Default()
 		router.Use(Middleware())
 		router.GET("/test", func(c *gin.Context) {
@@ -72,7 +101,7 @@ func TestAuthMiddleware(t *testing.T) {
 		assert.Equal(t, http.StatusOK, w.Code)
 	})
 
-	t.Run("missing token", func(t *testing.T) {
+	t.Run("Failure_Missing_Token", func(t *testing.T) {
 		router := gin.Default()
 		router.Use(Middleware())
 		router.GET("/test", func(c *gin.Context) {
@@ -86,7 +115,7 @@ func TestAuthMiddleware(t *testing.T) {
 		assert.Equal(t, http.StatusUnauthorized, w.Code)
 	})
 
-	t.Run("invalid token", func(t *testing.T) {
+	t.Run("Failure_Invalid_Token", func(t *testing.T) {
 		router := gin.Default()
 		router.Use(Middleware())
 		router.GET("/test", func(c *gin.Context) {
@@ -103,17 +132,17 @@ func TestAuthMiddleware(t *testing.T) {
 }
 
 func TestCheckRole(t *testing.T) {
-	t.Run("allowed role", func(t *testing.T) {
+	t.Run("Success_Allowed_Role", func(t *testing.T) {
 		role := "employee"
 		assert.True(t, CheckRole(&role))
 	})
 
-	t.Run("not allowed role", func(t *testing.T) {
+	t.Run("Failure_Not_Allowed_Role", func(t *testing.T) {
 		role := "admin"
 		assert.False(t, CheckRole(&role))
 	})
 
-	t.Run("nil role", func(t *testing.T) {
+	t.Run("Failure_Nil_Role", func(t *testing.T) {
 		assert.False(t, CheckRole(nil))
 	})
 }
@@ -121,7 +150,7 @@ func TestCheckRole(t *testing.T) {
 func TestRequireRole(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
-	t.Run("allowed role", func(t *testing.T) {
+	t.Run("Success_Allowed_Role", func(t *testing.T) {
 		router := gin.Default()
 		router.Use(Middleware())
 		router.Use(RequireRole("employee"))
@@ -141,7 +170,7 @@ func TestRequireRole(t *testing.T) {
 		assert.Equal(t, http.StatusOK, w.Code, "Expected status OK")
 	})
 
-	t.Run("not allowed role", func(t *testing.T) {
+	t.Run("Failure_Not_Allowed_Role", func(t *testing.T) {
 		router := gin.Default()
 		router.Use(RequireRole("employee"))
 		router.GET("/test", func(c *gin.Context) {
@@ -159,10 +188,22 @@ func TestRequireRole(t *testing.T) {
 }
 
 func TestGenerateJWT(t *testing.T) {
-	t.Run("success", func(t *testing.T) {
-		os.Setenv("SECRET_KEY", "test_secret")
-		os.Setenv("JWT_EXP", "1h")
-		InitAuthFromConfig()
+	t.Run("Success", func(t *testing.T) {
+		err := os.Setenv("SECRET_KEY", "test_secret")
+		if err != nil {
+			log.Error(err)
+			return
+		}
+		err = os.Setenv("JWT_EXP", "1h")
+		if err != nil {
+			log.Error(err)
+			return
+		}
+		err = InitAuthFromConfig()
+		if err != nil {
+			log.Error(err)
+			return
+		}
 
 		token, err := GenerateJWT("user1", "employee")
 		assert.NoError(t, err)
