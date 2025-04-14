@@ -28,6 +28,8 @@ func TestGetPVZList(t *testing.T) {
 	if err != nil {
 		log.Error(err)
 	}
+
+	ctx := context.Background()
 	t.Run("Successful_Get_Pvz", func(t *testing.T) {
 		pvz1 := &domain.PVZ{
 			ID:               &id,
@@ -40,7 +42,7 @@ func TestGetPVZList(t *testing.T) {
 			RegistrationDate: &dateTime,
 		}
 
-		mockRepo.EXPECT().GetAllPVZ().Return([]*domain.PVZ{pvz1, pvz2}, nil)
+		mockRepo.EXPECT().GetAllPVZ(ctx).Return([]*domain.PVZ{pvz1, pvz2}, nil)
 
 		resp, err := service.GetPVZList(context.Background(), &GetPVZListRequest{})
 		assert.NoError(t, err)
@@ -52,7 +54,7 @@ func TestGetPVZList(t *testing.T) {
 	})
 
 	t.Run("Error", func(t *testing.T) {
-		mockRepo.EXPECT().GetAllPVZ().Return(nil, domain.ErrGetPVZ)
+		mockRepo.EXPECT().GetAllPVZ(ctx).Return(nil, domain.ErrGetPVZ)
 
 		resp, err := service.GetPVZList(context.Background(), &GetPVZListRequest{})
 		assert.Error(t, err)
@@ -63,9 +65,9 @@ func TestGetPVZList(t *testing.T) {
 func TestGetPVZList_RepositoryError(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-
+	ctx := context.Background()
 	mockRepo := mock_repository.NewMockPVZRepository(ctrl)
-	mockRepo.EXPECT().GetAllPVZ().Return(nil, domain.ErrGetPVZ)
+	mockRepo.EXPECT().GetAllPVZ(ctx).Return(nil, domain.ErrGetPVZ)
 
 	repo := &repository.Repository{PvzRepository: mockRepo}
 	service := NewPVZService(repo)
@@ -81,8 +83,9 @@ func TestGetPVZList_Empty(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
+	ctx := context.Background()
 	mockRepo := mock_repository.NewMockPVZRepository(ctrl)
-	mockRepo.EXPECT().GetAllPVZ().Return([]*domain.PVZ{}, nil)
+	mockRepo.EXPECT().GetAllPVZ(ctx).Return([]*domain.PVZ{}, nil)
 
 	repo := &repository.Repository{PvzRepository: mockRepo}
 	service := NewPVZService(repo)
@@ -98,8 +101,9 @@ func TestGetPVZList_EmptyResult(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
+	ctx := context.Background()
 	mockRepo := mock_repository.NewMockPVZRepository(ctrl)
-	mockRepo.EXPECT().GetAllPVZ().Return([]*domain.PVZ{}, nil)
+	mockRepo.EXPECT().GetAllPVZ(ctx).Return([]*domain.PVZ{}, nil)
 
 	repo := &repository.Repository{PvzRepository: mockRepo}
 	service := NewPVZService(repo)

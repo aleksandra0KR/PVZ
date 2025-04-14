@@ -15,8 +15,8 @@ func NewPVZService(repo *repository.Repository) *PVZService {
 	return &PVZService{repo: repo}
 }
 
-func (s *PVZService) GetPVZList(_ context.Context, _ *GetPVZListRequest) (*GetPVZListResponse, error) {
-	pvzs, err := s.repo.PvzRepository.GetAllPVZ()
+func (s *PVZService) GetPVZList(ctx context.Context, _ *GetPVZListRequest) (*GetPVZListResponse, error) {
+	pvzs, err := s.repo.PvzRepository.GetAllPVZ(ctx)
 	if err != nil {
 		return nil, err
 	}
