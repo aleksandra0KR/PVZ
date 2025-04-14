@@ -1,6 +1,7 @@
 package postgres
 
 import (
+	"context"
 	"database/sql"
 	"final/internal/domain"
 	"github.com/DATA-DOG/go-sqlmock"
@@ -28,6 +29,7 @@ func TestCreatePVZ(t *testing.T) {
 	allowedCity := "Москва"
 
 	t.Run("Successful_Create_PVZ", func(t *testing.T) {
+		ctx := context.Background()
 		pvz := &domain.PVZ{
 			City: &allowedCity,
 		}
@@ -36,13 +38,14 @@ func TestCreatePVZ(t *testing.T) {
 			WithArgs(nil, nil, "Москва").
 			WillReturnRows(sqlmock.NewRows([]string{"id", "registration_date"}).AddRow("1", time.Now()))
 
-		result, err := pvzRepo.CreatePVZ(pvz)
+		result, err := pvzRepo.CreatePVZ(ctx, pvz)
 		assert.NoError(t, err)
 		assert.NotNil(t, result)
 		assert.Equal(t, "Москва", *result.City)
 	})
 
 	t.Run("Failure_DB_Error", func(t *testing.T) {
+		ctx := context.Background()
 		pvz := &domain.PVZ{
 			City: &allowedCity,
 		}
@@ -51,7 +54,7 @@ func TestCreatePVZ(t *testing.T) {
 			WithArgs(nil, nil, "Москва").
 			WillReturnError(sql.ErrConnDone)
 
-		result, err := pvzRepo.CreatePVZ(pvz)
+		result, err := pvzRepo.CreatePVZ(ctx, pvz)
 		assert.Error(t, err)
 		assert.Equal(t, domain.ErrCreatePVZ, err)
 		assert.Nil(t, result)
@@ -72,7 +75,7 @@ func TestGetAllPVZ(t *testing.T) {
 
 	sqlxDB := sqlx.NewDb(db, "sqlmock")
 	pvzRepo := NewPvzRepository(sqlxDB)
-
+	ctx := context.Background()
 	t.Run("Successful_Get_All_PVZ", func(t *testing.T) {
 		rows := sqlmock.NewRows([]string{"id", "registration_date", "city"}).
 			AddRow("1", time.Now(), "Москва").
@@ -80,7 +83,7 @@ func TestGetAllPVZ(t *testing.T) {
 
 		mock.ExpectQuery("SELECT \\* FROM pvz").WillReturnRows(rows)
 
-		result, err := pvzRepo.GetAllPVZ()
+		result, err := pvzRepo.GetAllPVZ(ctx)
 		assert.NoError(t, err)
 		assert.Len(t, result, 2)
 		assert.Equal(t, "Москва", *result[0].City)
@@ -90,7 +93,7 @@ func TestGetAllPVZ(t *testing.T) {
 	t.Run("Failure_DB_Error", func(t *testing.T) {
 		mock.ExpectQuery("SELECT * FROM pvz").WillReturnError(sql.ErrConnDone)
 
-		result, err := pvzRepo.GetAllPVZ()
+		result, err := pvzRepo.GetAllPVZ(ctx)
 		assert.Error(t, err)
 		assert.Equal(t, domain.ErrGetPVZ, err)
 		assert.Nil(t, result)
@@ -111,8 +114,9 @@ func TestGetPVZInfo(t *testing.T) {
 
 	sqlxDB := sqlx.NewDb(db, "sqlmock")
 	pvzRepo := NewPvzRepository(sqlxDB)
-
+	ctx := context.Background()
 	t.Run("Successful_Get_PVZ_Info", func(t *testing.T) {
+		ctx := context.Background()
 		startDate := time.Now().AddDate(0, 0, -1)
 		endDate := time.Now()
 		offset := 0
@@ -130,11 +134,11 @@ func TestGetPVZInfo(t *testing.T) {
 			WithArgs(startDate, endDate).
 			WillReturnRows(rows)
 
-		result, err := pvzRepo.GetPVZInfo(&startDate, &endDate, offset, limit)
+		result, err := pvzRepo.GetPVZInfo(ctx, &startDate, &endDate, offset, limit)
 		assert.NoError(t, err)
 		assert.Len(t, result, 1)
 		assert.Equal(t, "Москва", *result[0].PVZ.City)
-		assert.Len(t, result[0].Receptions, 1)
+		assert.Len(t, result[0].Receptions, 2)
 		assert.Equal(t, "in_progress", *result[0].Receptions[0].Reception.Status)
 	})
 
@@ -148,7 +152,7 @@ func TestGetPVZInfo(t *testing.T) {
 			WithArgs(startDate, endDate, limit, offset).
 			WillReturnError(sql.ErrConnDone)
 
-		result, err := pvzRepo.GetPVZInfo(&startDate, &endDate, offset, limit)
+		result, err := pvzRepo.GetPVZInfo(ctx, &startDate, &endDate, offset, limit)
 		assert.Error(t, err)
 		assert.Nil(t, result)
 	})

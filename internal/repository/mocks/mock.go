@@ -5,6 +5,7 @@
 package mock_repository
 
 import (
+	context "context"
 	domain "final/internal/domain"
 	reflect "reflect"
 	time "time"
@@ -36,48 +37,48 @@ func (m *MockPVZRepository) EXPECT() *MockPVZRepositoryMockRecorder {
 }
 
 // CreatePVZ mocks base method.
-func (m *MockPVZRepository) CreatePVZ(arg0 *domain.PVZ) (*domain.PVZ, error) {
+func (m *MockPVZRepository) CreatePVZ(arg0 context.Context, arg1 *domain.PVZ) (*domain.PVZ, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreatePVZ", arg0)
+	ret := m.ctrl.Call(m, "CreatePVZ", arg0, arg1)
 	ret0, _ := ret[0].(*domain.PVZ)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // CreatePVZ indicates an expected call of CreatePVZ.
-func (mr *MockPVZRepositoryMockRecorder) CreatePVZ(arg0 interface{}) *gomock.Call {
+func (mr *MockPVZRepositoryMockRecorder) CreatePVZ(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreatePVZ", reflect.TypeOf((*MockPVZRepository)(nil).CreatePVZ), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreatePVZ", reflect.TypeOf((*MockPVZRepository)(nil).CreatePVZ), arg0, arg1)
 }
 
 // GetAllPVZ mocks base method.
-func (m *MockPVZRepository) GetAllPVZ() ([]*domain.PVZ, error) {
+func (m *MockPVZRepository) GetAllPVZ(arg0 context.Context) ([]*domain.PVZ, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetAllPVZ")
+	ret := m.ctrl.Call(m, "GetAllPVZ", arg0)
 	ret0, _ := ret[0].([]*domain.PVZ)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetAllPVZ indicates an expected call of GetAllPVZ.
-func (mr *MockPVZRepositoryMockRecorder) GetAllPVZ() *gomock.Call {
+func (mr *MockPVZRepositoryMockRecorder) GetAllPVZ(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllPVZ", reflect.TypeOf((*MockPVZRepository)(nil).GetAllPVZ))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllPVZ", reflect.TypeOf((*MockPVZRepository)(nil).GetAllPVZ), arg0)
 }
 
 // GetPVZInfo mocks base method.
-func (m *MockPVZRepository) GetPVZInfo(arg0, arg1 *time.Time, arg2, arg3 int) ([]domain.PVZWithReceptions, error) {
+func (m *MockPVZRepository) GetPVZInfo(arg0 context.Context, arg1, arg2 *time.Time, arg3, arg4 int) ([]domain.PVZWithReceptions, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetPVZInfo", arg0, arg1, arg2, arg3)
+	ret := m.ctrl.Call(m, "GetPVZInfo", arg0, arg1, arg2, arg3, arg4)
 	ret0, _ := ret[0].([]domain.PVZWithReceptions)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetPVZInfo indicates an expected call of GetPVZInfo.
-func (mr *MockPVZRepositoryMockRecorder) GetPVZInfo(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
+func (mr *MockPVZRepositoryMockRecorder) GetPVZInfo(arg0, arg1, arg2, arg3, arg4 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPVZInfo", reflect.TypeOf((*MockPVZRepository)(nil).GetPVZInfo), arg0, arg1, arg2, arg3)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPVZInfo", reflect.TypeOf((*MockPVZRepository)(nil).GetPVZInfo), arg0, arg1, arg2, arg3, arg4)
 }
 
 // MockReceptionRepository is a mock of ReceptionRepository interface.
@@ -104,33 +105,33 @@ func (m *MockReceptionRepository) EXPECT() *MockReceptionRepositoryMockRecorder 
 }
 
 // CloseReception mocks base method.
-func (m *MockReceptionRepository) CloseReception(arg0 *string) (*domain.Reception, error) {
+func (m *MockReceptionRepository) CloseReception(arg0 context.Context, arg1 *string) (*domain.Reception, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CloseReception", arg0)
+	ret := m.ctrl.Call(m, "CloseReception", arg0, arg1)
 	ret0, _ := ret[0].(*domain.Reception)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // CloseReception indicates an expected call of CloseReception.
-func (mr *MockReceptionRepositoryMockRecorder) CloseReception(arg0 interface{}) *gomock.Call {
+func (mr *MockReceptionRepositoryMockRecorder) CloseReception(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CloseReception", reflect.TypeOf((*MockReceptionRepository)(nil).CloseReception), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CloseReception", reflect.TypeOf((*MockReceptionRepository)(nil).CloseReception), arg0, arg1)
 }
 
 // CreateReception mocks base method.
-func (m *MockReceptionRepository) CreateReception(arg0 *domain.Reception) (*domain.Reception, error) {
+func (m *MockReceptionRepository) CreateReception(arg0 context.Context, arg1 *domain.Reception) (*domain.Reception, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateReception", arg0)
+	ret := m.ctrl.Call(m, "CreateReception", arg0, arg1)
 	ret0, _ := ret[0].(*domain.Reception)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // CreateReception indicates an expected call of CreateReception.
-func (mr *MockReceptionRepositoryMockRecorder) CreateReception(arg0 interface{}) *gomock.Call {
+func (mr *MockReceptionRepositoryMockRecorder) CreateReception(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateReception", reflect.TypeOf((*MockReceptionRepository)(nil).CreateReception), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateReception", reflect.TypeOf((*MockReceptionRepository)(nil).CreateReception), arg0, arg1)
 }
 
 // MockProductRepository is a mock of ProductRepository interface.
@@ -157,32 +158,32 @@ func (m *MockProductRepository) EXPECT() *MockProductRepositoryMockRecorder {
 }
 
 // CreateProduct mocks base method.
-func (m *MockProductRepository) CreateProduct(arg0 *domain.InputProduct) (*domain.Product, error) {
+func (m *MockProductRepository) CreateProduct(arg0 context.Context, arg1 *domain.InputProduct) (*domain.Product, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateProduct", arg0)
+	ret := m.ctrl.Call(m, "CreateProduct", arg0, arg1)
 	ret0, _ := ret[0].(*domain.Product)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // CreateProduct indicates an expected call of CreateProduct.
-func (mr *MockProductRepositoryMockRecorder) CreateProduct(arg0 interface{}) *gomock.Call {
+func (mr *MockProductRepositoryMockRecorder) CreateProduct(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateProduct", reflect.TypeOf((*MockProductRepository)(nil).CreateProduct), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateProduct", reflect.TypeOf((*MockProductRepository)(nil).CreateProduct), arg0, arg1)
 }
 
 // DeleteLastProductForPVZ mocks base method.
-func (m *MockProductRepository) DeleteLastProductForPVZ(arg0 *string) error {
+func (m *MockProductRepository) DeleteLastProductForPVZ(arg0 context.Context, arg1 *string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteLastProductForPVZ", arg0)
+	ret := m.ctrl.Call(m, "DeleteLastProductForPVZ", arg0, arg1)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // DeleteLastProductForPVZ indicates an expected call of DeleteLastProductForPVZ.
-func (mr *MockProductRepositoryMockRecorder) DeleteLastProductForPVZ(arg0 interface{}) *gomock.Call {
+func (mr *MockProductRepositoryMockRecorder) DeleteLastProductForPVZ(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteLastProductForPVZ", reflect.TypeOf((*MockProductRepository)(nil).DeleteLastProductForPVZ), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteLastProductForPVZ", reflect.TypeOf((*MockProductRepository)(nil).DeleteLastProductForPVZ), arg0, arg1)
 }
 
 // MockUserRepository is a mock of UserRepository interface.
@@ -209,31 +210,31 @@ func (m *MockUserRepository) EXPECT() *MockUserRepositoryMockRecorder {
 }
 
 // GetUserByEmail mocks base method.
-func (m *MockUserRepository) GetUserByEmail(arg0 string) (*domain.User, error) {
+func (m *MockUserRepository) GetUserByEmail(arg0 context.Context, arg1 string) (*domain.User, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetUserByEmail", arg0)
+	ret := m.ctrl.Call(m, "GetUserByEmail", arg0, arg1)
 	ret0, _ := ret[0].(*domain.User)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetUserByEmail indicates an expected call of GetUserByEmail.
-func (mr *MockUserRepositoryMockRecorder) GetUserByEmail(arg0 interface{}) *gomock.Call {
+func (mr *MockUserRepositoryMockRecorder) GetUserByEmail(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserByEmail", reflect.TypeOf((*MockUserRepository)(nil).GetUserByEmail), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserByEmail", reflect.TypeOf((*MockUserRepository)(nil).GetUserByEmail), arg0, arg1)
 }
 
 // Register mocks base method.
-func (m *MockUserRepository) Register(arg0 *domain.User) (*domain.User, error) {
+func (m *MockUserRepository) Register(arg0 context.Context, arg1 *domain.User) (*domain.User, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Register", arg0)
+	ret := m.ctrl.Call(m, "Register", arg0, arg1)
 	ret0, _ := ret[0].(*domain.User)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Register indicates an expected call of Register.
-func (mr *MockUserRepositoryMockRecorder) Register(arg0 interface{}) *gomock.Call {
+func (mr *MockUserRepositoryMockRecorder) Register(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Register", reflect.TypeOf((*MockUserRepository)(nil).Register), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Register", reflect.TypeOf((*MockUserRepository)(nil).Register), arg0, arg1)
 }

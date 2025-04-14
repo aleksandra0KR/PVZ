@@ -1,6 +1,7 @@
 package postgres
 
 import (
+	"context"
 	"database/sql"
 	"final/internal/domain"
 	"github.com/DATA-DOG/go-sqlmock"
@@ -33,6 +34,7 @@ func TestCreateProduct(t *testing.T) {
 	dateTime := time.Now()
 
 	t.Run("Successful_Create_Product", func(t *testing.T) {
+		ctx := context.Background()
 		inputProduct := &domain.InputProduct{
 			Type:  &productType,
 			PvzId: &pvzId,
@@ -49,7 +51,7 @@ func TestCreateProduct(t *testing.T) {
 
 		mock.ExpectCommit()
 
-		product, err := productRepo.CreateProduct(inputProduct)
+		product, err := productRepo.CreateProduct(ctx, inputProduct)
 		assert.NoError(t, err)
 		assert.NotNil(t, product)
 		assert.Equal(t, receptionId, *product.ReceptionID)
@@ -59,6 +61,7 @@ func TestCreateProduct(t *testing.T) {
 	})
 
 	t.Run("Failure_Reception_Not_Found", func(t *testing.T) {
+		ctx := context.Background()
 		inputProduct := &domain.InputProduct{
 			Type:  &productType,
 			PvzId: &pvzId,
@@ -71,13 +74,14 @@ func TestCreateProduct(t *testing.T) {
 
 		mock.ExpectRollback()
 
-		product, err := productRepo.CreateProduct(inputProduct)
+		product, err := productRepo.CreateProduct(ctx, inputProduct)
 		assert.Error(t, err)
 		assert.Equal(t, domain.ErrReceptionNotFound, err)
 		assert.Nil(t, product)
 	})
 
 	t.Run("Failure_DB_Error", func(t *testing.T) {
+		ctx := context.Background()
 		inputProduct := &domain.InputProduct{
 			Type:  &productType,
 			PvzId: &pvzId,
@@ -94,7 +98,7 @@ func TestCreateProduct(t *testing.T) {
 
 		mock.ExpectRollback()
 
-		product, err := productRepo.CreateProduct(inputProduct)
+		product, err := productRepo.CreateProduct(ctx, inputProduct)
 		assert.Error(t, err)
 		assert.Equal(t, domain.ErrCreateProduct, err)
 		assert.Nil(t, product)
@@ -102,6 +106,7 @@ func TestCreateProduct(t *testing.T) {
 }
 
 func TestDeleteLastProductForPVZ(t *testing.T) {
+	ctx := context.Background()
 	db, mock, err := sqlmock.New()
 	if err != nil {
 		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
@@ -139,7 +144,7 @@ func TestDeleteLastProductForPVZ(t *testing.T) {
 
 		mock.ExpectCommit()
 
-		product, err := productRepo.CreateProduct(inputProduct)
+		product, err := productRepo.CreateProduct(ctx, inputProduct)
 		assert.NoError(t, err)
 		assert.NotNil(t, product)
 		assert.Equal(t, receptionId, *product.ReceptionID)
@@ -173,7 +178,7 @@ func TestDeleteLastProductForPVZ(t *testing.T) {
 
 		mock.ExpectRollback()
 
-		err = productRepo.DeleteLastProductForPVZ(&pvzId)
+		err = productRepo.DeleteLastProductForPVZ(ctx, &pvzId)
 		assert.Error(t, err)
 		assert.Equal(t, domain.ErrReceptionNotFound, err)
 	})
@@ -208,7 +213,7 @@ func TestDeleteLastProductForPVZ(t *testing.T) {
 
 		mock.ExpectRollback()
 
-		err = productRepo.DeleteLastProductForPVZ(&pvzId)
+		err = productRepo.DeleteLastProductForPVZ(ctx, &pvzId)
 		assert.Error(t, err)
 		assert.Equal(t, domain.ErrNoProductsInReception, err)
 	})
@@ -229,7 +234,7 @@ func TestDeleteLastProductForPVZ(t *testing.T) {
 
 		mock.ExpectRollback()
 
-		err = productRepo.DeleteLastProductForPVZ(&pvzId)
+		err = productRepo.DeleteLastProductForPVZ(ctx, &pvzId)
 		assert.Error(t, err)
 		assert.Equal(t, domain.ErrDeleteProduct, err)
 	})
@@ -250,6 +255,7 @@ func TestGetAmountOfProductsForReceptionTx(t *testing.T) {
 	productRepo := NewProductRepository(sqlxDB, receptionRepo)
 	receptionId := "1"
 
+	ctx := context.Background()
 	t.Run("Successful_Get_Amount_Of_Products", func(t *testing.T) {
 		mock.ExpectBegin()
 		tx, err := sqlxDB.Beginx()
@@ -259,7 +265,7 @@ func TestGetAmountOfProductsForReceptionTx(t *testing.T) {
 			WithArgs(receptionId).
 			WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(5))
 
-		count, err := productRepo.getAmountOfProductsForReceptionTx(tx, &receptionId)
+		count, err := productRepo.getAmountOfProductsForReceptionTx(ctx, tx, &receptionId)
 		assert.NoError(t, err)
 		assert.Equal(t, 5, count)
 	})
@@ -273,7 +279,7 @@ func TestGetAmountOfProductsForReceptionTx(t *testing.T) {
 			WithArgs(receptionId).
 			WillReturnError(sql.ErrConnDone)
 
-		count, err := productRepo.getAmountOfProductsForReceptionTx(tx, &receptionId)
+		count, err := productRepo.getAmountOfProductsForReceptionTx(ctx, tx, &receptionId)
 		assert.Error(t, err)
 		assert.Equal(t, 0, count)
 	})

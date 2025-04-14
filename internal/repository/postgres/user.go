@@ -1,6 +1,7 @@
 package postgres
 
 import (
+	"context"
 	"final/internal/domain"
 	"github.com/jmoiron/sqlx"
 	log "github.com/sirupsen/logrus"
@@ -14,8 +15,8 @@ func NewUserRepository(db *sqlx.DB) *UserRepository {
 	return &UserRepository{db: db}
 }
 
-func (r *UserRepository) Register(user *domain.User) (*domain.User, error) {
-	userGetByEmail, err := r.GetUserByEmail(*user.Email)
+func (r *UserRepository) Register(ctx context.Context, user *domain.User) (*domain.User, error) {
+	userGetByEmail, err := r.GetUserByEmail(ctx, *user.Email)
 	if userGetByEmail != nil && err != nil {
 		return nil, domain.ErrCreateUser
 	} else if userGetByEmail != nil {
@@ -25,7 +26,7 @@ func (r *UserRepository) Register(user *domain.User) (*domain.User, error) {
 	query := `INSERT INTO users (email, password, role)
               VALUES ($1, $2, $3)
               RETURNING id`
-	row := r.db.QueryRow(query, user.Email, user.Password, user.Role)
+	row := r.db.QueryRowContext(ctx, query, user.Email, user.Password, user.Role)
 	err = row.Scan(&user.ID)
 	if err != nil {
 		log.Error(err)
@@ -34,9 +35,9 @@ func (r *UserRepository) Register(user *domain.User) (*domain.User, error) {
 	return user, nil
 }
 
-func (r *UserRepository) GetUserByEmail(email string) (*domain.User, error) {
+func (r *UserRepository) GetUserByEmail(ctx context.Context, email string) (*domain.User, error) {
 	query := `SELECT id, email, password, role FROM users WHERE email = $1`
-	row := r.db.QueryRow(query, email)
+	row := r.db.QueryRowContext(ctx, query, email)
 
 	var user domain.User
 	err := row.Scan(&user.ID, &user.Email, &user.Password, &user.Role)

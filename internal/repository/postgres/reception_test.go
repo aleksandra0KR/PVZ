@@ -1,6 +1,7 @@
 package postgres
 
 import (
+	"context"
 	"database/sql"
 	"final/internal/domain"
 	"github.com/DATA-DOG/go-sqlmock"
@@ -30,7 +31,7 @@ func TestCreateReception(t *testing.T) {
 	receptionId := "reception-123"
 	dateTime := time.Now()
 	status := "in_progress"
-
+	ctx := context.Background()
 	t.Run("Successful_Create_Reception", func(t *testing.T) {
 		inputReception := &domain.Reception{
 			ID:       nil,
@@ -48,7 +49,7 @@ func TestCreateReception(t *testing.T) {
 			WithArgs(nil, nil, pvzId, "in_progress").
 			WillReturnRows(sqlmock.NewRows([]string{"id", "date_time", "status"}).AddRow(receptionId, dateTime, "in_progress"))
 
-		reception, err := repo.CreateReception(inputReception)
+		reception, err := repo.CreateReception(ctx, inputReception)
 		assert.NoError(t, err)
 		assert.NotNil(t, reception)
 		assert.Equal(t, receptionId, *reception.ID)
@@ -69,7 +70,7 @@ func TestCreateReception(t *testing.T) {
 			WithArgs(pvzId).
 			WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(receptionId))
 
-		reception, err := repo.CreateReception(inputReception)
+		reception, err := repo.CreateReception(ctx, inputReception)
 		assert.Error(t, err)
 		assert.Equal(t, domain.ErrCreateReceptionBecauseOfPreviousReception, err)
 		assert.Nil(t, reception)
@@ -88,7 +89,7 @@ func TestCreateReception(t *testing.T) {
 			WithArgs(pvzId).
 			WillReturnError(sql.ErrConnDone)
 
-		reception, err := repo.CreateReception(inputReception)
+		reception, err := repo.CreateReception(ctx, inputReception)
 		assert.Error(t, err)
 		assert.Equal(t, domain.ErrCreateReception, err)
 		assert.Nil(t, reception)
@@ -115,6 +116,7 @@ func TestCloseReception(t *testing.T) {
 	dateTime := time.Now()
 	status := "close"
 
+	ctx := context.Background()
 	t.Run("Successful_Close_Reception", func(t *testing.T) {
 		mock.ExpectQuery("SELECT id FROM receptions").
 			WithArgs(pvzId).
@@ -124,7 +126,7 @@ func TestCloseReception(t *testing.T) {
 			WithArgs(receptionId).
 			WillReturnRows(sqlmock.NewRows([]string{"id", "date_time", "pvz_id", "status"}).AddRow(receptionId, dateTime, pvzId, "close"))
 
-		reception, err := repo.CloseReception(&pvzId)
+		reception, err := repo.CloseReception(ctx, &pvzId)
 		assert.NoError(t, err)
 		assert.NotNil(t, reception)
 		assert.Equal(t, receptionId, *reception.ID)
@@ -137,7 +139,7 @@ func TestCloseReception(t *testing.T) {
 			WithArgs(pvzId).
 			WillReturnRows(sqlmock.NewRows([]string{"id"}))
 
-		reception, err := repo.CloseReception(&pvzId)
+		reception, err := repo.CloseReception(ctx, &pvzId)
 		assert.Error(t, err)
 		assert.Equal(t, domain.ErrReceptionNotFound, err)
 		assert.Nil(t, reception)
@@ -148,7 +150,7 @@ func TestCloseReception(t *testing.T) {
 			WithArgs(pvzId).
 			WillReturnError(sql.ErrConnDone)
 
-		reception, err := repo.CloseReception(&pvzId)
+		reception, err := repo.CloseReception(ctx, &pvzId)
 		assert.Error(t, err)
 		assert.Equal(t, domain.ErrCloseReception, err)
 		assert.Nil(t, reception)

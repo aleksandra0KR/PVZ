@@ -1,6 +1,7 @@
 package postgres
 
 import (
+	"context"
 	"final/internal/domain"
 	"github.com/jmoiron/sqlx"
 	log "github.com/sirupsen/logrus"
@@ -15,8 +16,8 @@ func NewProductRepository(db *sqlx.DB, receptionRepository *ReceptionRepository)
 	return &ProductRepository{db: db, receptionRepository: receptionRepository}
 }
 
-func (r *ProductRepository) CreateProduct(inputProduct *domain.InputProduct) (*domain.Product, error) {
-	tx, err := r.db.Beginx()
+func (r *ProductRepository) CreateProduct(ctx context.Context, inputProduct *domain.InputProduct) (*domain.Product, error) {
+	tx, err := r.db.BeginTxx(ctx, nil)
 	if err != nil {
 		log.Error(err)
 		return nil, domain.ErrCreateProduct
@@ -34,7 +35,7 @@ func (r *ProductRepository) CreateProduct(inputProduct *domain.InputProduct) (*d
 		}
 	}()
 
-	receptionID, err := r.receptionRepository.getLastReceptionIDInProgressForPVZTx(tx, inputProduct.PvzId)
+	receptionID, err := r.receptionRepository.getLastReceptionIDInProgressForPVZTx(ctx, tx, inputProduct.PvzId)
 	if err != nil {
 		return nil, domain.ErrCreateProduct
 	} else if receptionID == nil {
@@ -48,7 +49,7 @@ func (r *ProductRepository) CreateProduct(inputProduct *domain.InputProduct) (*d
 	query := `INSERT INTO products (reception_id, type)
               VALUES ($1, $2)
               RETURNING id, date_time`
-	row := tx.QueryRow(query, product.ReceptionID, product.Type)
+	row := tx.QueryRowContext(ctx, query, product.ReceptionID, product.Type)
 	err = row.Scan(&product.ID, &product.DateTime)
 	if err != nil {
 		log.Error(err)
@@ -57,8 +58,8 @@ func (r *ProductRepository) CreateProduct(inputProduct *domain.InputProduct) (*d
 	return &product, nil
 }
 
-func (r *ProductRepository) DeleteLastProductForPVZ(pvzId *string) error {
-	tx, err := r.db.Beginx()
+func (r *ProductRepository) DeleteLastProductForPVZ(ctx context.Context, pvzId *string) error {
+	tx, err := r.db.BeginTxx(ctx, nil)
 	if err != nil {
 		log.Error(err)
 		return domain.ErrDeleteProduct
@@ -76,14 +77,14 @@ func (r *ProductRepository) DeleteLastProductForPVZ(pvzId *string) error {
 		}
 	}()
 
-	receptionID, err := r.receptionRepository.getLastReceptionIDInProgressForPVZTx(tx, pvzId)
+	receptionID, err := r.receptionRepository.getLastReceptionIDInProgressForPVZTx(ctx, tx, pvzId)
 	if err != nil {
 		return domain.ErrDeleteProduct
 	} else if receptionID == nil {
 		return domain.ErrReceptionNotFound
 	}
 
-	productCount, err := r.getAmountOfProductsForReceptionTx(tx, receptionID)
+	productCount, err := r.getAmountOfProductsForReceptionTx(ctx, tx, receptionID)
 	if err != nil {
 		return domain.ErrDeleteProduct
 	} else if productCount == 0 {
@@ -99,7 +100,7 @@ func (r *ProductRepository) DeleteLastProductForPVZ(pvzId *string) error {
 			ORDER BY date_time DESC
 			LIMIT 1
 		)`
-	_, err = tx.Exec(query, *receptionID)
+	_, err = tx.ExecContext(ctx, query, *receptionID)
 	if err != nil {
 		log.Error(err)
 		return domain.ErrDeleteProduct
@@ -107,10 +108,10 @@ func (r *ProductRepository) DeleteLastProductForPVZ(pvzId *string) error {
 	return nil
 }
 
-func (r *ProductRepository) getAmountOfProductsForReceptionTx(tx *sqlx.Tx, receptionId *string) (int, error) {
+func (r *ProductRepository) getAmountOfProductsForReceptionTx(ctx context.Context, tx *sqlx.Tx, receptionId *string) (int, error) {
 	var productCount int
 	query := `SELECT COUNT(*) FROM products WHERE reception_id = $1`
-	err := tx.QueryRow(query, *receptionId).Scan(&productCount)
+	err := tx.QueryRowContext(ctx, query, *receptionId).Scan(&productCount)
 	if err != nil {
 		log.Error(err)
 		return 0, err

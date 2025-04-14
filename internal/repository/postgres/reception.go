@@ -1,6 +1,7 @@
 package postgres
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 	"final/internal/domain"
@@ -16,8 +17,8 @@ func NewReceptionRepository(db *sqlx.DB) *ReceptionRepository {
 	return &ReceptionRepository{db: db}
 }
 
-func (r *ReceptionRepository) CreateReception(reception *domain.Reception) (*domain.Reception, error) {
-	tx, err := r.db.Beginx()
+func (r *ReceptionRepository) CreateReception(ctx context.Context, reception *domain.Reception) (*domain.Reception, error) {
+	tx, err := r.db.BeginTxx(ctx, nil)
 	if err != nil {
 		log.Error(err)
 		return nil, domain.ErrCreateReception
@@ -35,7 +36,7 @@ func (r *ReceptionRepository) CreateReception(reception *domain.Reception) (*dom
 		}
 	}()
 
-	receptionID, err := r.getLastReceptionIDInProgressForPVZTx(tx, reception.PvzId)
+	receptionID, err := r.getLastReceptionIDInProgressForPVZTx(ctx, tx, reception.PvzId)
 	if receptionID != nil {
 		return nil, domain.ErrCreateReceptionBecauseOfPreviousReception
 	} else if err != nil {
@@ -46,7 +47,7 @@ func (r *ReceptionRepository) CreateReception(reception *domain.Reception) (*dom
               VALUES (COALESCE($1, gen_random_uuid()), COALESCE($2, now()), $3,  COALESCE($4, status('in_progress')))
               RETURNING id, date_time, status`
 
-	row := tx.QueryRow(query, reception.ID, reception.DateTime, reception.PvzId, reception.Status)
+	row := tx.QueryRowContext(ctx, query, reception.ID, reception.DateTime, reception.PvzId, reception.Status)
 	err = row.Scan(&reception.ID, &reception.DateTime, &reception.Status)
 	if err != nil {
 		log.Error(err)
@@ -55,11 +56,11 @@ func (r *ReceptionRepository) CreateReception(reception *domain.Reception) (*dom
 	return reception, nil
 }
 
-func (r *ReceptionRepository) getLastReceptionIDInProgressForPVZTx(tx *sqlx.Tx, pvzID *string) (*string, error) {
+func (r *ReceptionRepository) getLastReceptionIDInProgressForPVZTx(ctx context.Context, tx *sqlx.Tx, pvzID *string) (*string, error) {
 	query := `SELECT id FROM receptions WHERE pvz_id = $1 AND status = 'in_progress'`
 
 	var receptionID string
-	err := tx.QueryRow(query, *pvzID).Scan(&receptionID)
+	err := tx.QueryRowContext(ctx, query, *pvzID).Scan(&receptionID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, nil
@@ -70,11 +71,11 @@ func (r *ReceptionRepository) getLastReceptionIDInProgressForPVZTx(tx *sqlx.Tx, 
 	return &receptionID, nil
 }
 
-func (r *ReceptionRepository) getLastReceptionIDInProgressForPVZ(pvzID *string) (*string, error) {
+func (r *ReceptionRepository) getLastReceptionIDInProgressForPVZ(ctx context.Context, pvzID *string) (*string, error) {
 	query := `SELECT id FROM receptions WHERE pvz_id = $1 AND status = 'in_progress'`
 
 	var receptionID string
-	err := r.db.QueryRow(query, *pvzID).Scan(&receptionID)
+	err := r.db.QueryRowContext(ctx, query, *pvzID).Scan(&receptionID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, nil
@@ -85,8 +86,8 @@ func (r *ReceptionRepository) getLastReceptionIDInProgressForPVZ(pvzID *string) 
 	return &receptionID, nil
 }
 
-func (r *ReceptionRepository) CloseReception(pvzID *string) (*domain.Reception, error) {
-	receptionID, err := r.getLastReceptionIDInProgressForPVZ(pvzID)
+func (r *ReceptionRepository) CloseReception(ctx context.Context, pvzID *string) (*domain.Reception, error) {
+	receptionID, err := r.getLastReceptionIDInProgressForPVZ(ctx, pvzID)
 	if err != nil {
 		return nil, domain.ErrCloseReception
 	} else if receptionID == nil {
@@ -99,7 +100,7 @@ func (r *ReceptionRepository) CloseReception(pvzID *string) (*domain.Reception, 
 					WHERE id = $1 
 					RETURNING id, date_time, pvz_id, status`
 	var reception domain.Reception
-	err = r.db.QueryRow(updateQuery, *receptionID).Scan(&reception.ID, &reception.DateTime, &reception.PvzId, &reception.Status)
+	err = r.db.QueryRowContext(ctx, updateQuery, *receptionID).Scan(&reception.ID, &reception.DateTime, &reception.PvzId, &reception.Status)
 	if err != nil {
 		log.Error(err)
 		return nil, domain.ErrCloseReception

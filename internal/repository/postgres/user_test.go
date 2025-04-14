@@ -1,6 +1,7 @@
 package postgres
 
 import (
+	"context"
 	"database/sql"
 	"final/internal/domain"
 	"github.com/DATA-DOG/go-sqlmock"
@@ -30,6 +31,7 @@ func TestRegister(t *testing.T) {
 	role := "employee"
 	userId := "1"
 
+	ctx := context.Background()
 	t.Run("Successful_Registration", func(t *testing.T) {
 		inputUser := &domain.User{
 			Email:    &email,
@@ -45,7 +47,7 @@ func TestRegister(t *testing.T) {
 			WithArgs(email, password, role).
 			WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(userId))
 
-		user, err := repo.Register(inputUser)
+		user, err := repo.Register(ctx, inputUser)
 		assert.NoError(t, err)
 		assert.NotNil(t, user)
 		assert.Equal(t, userId, *user.ID)
@@ -65,7 +67,7 @@ func TestRegister(t *testing.T) {
 			WithArgs(email).
 			WillReturnRows(sqlmock.NewRows([]string{"id", "email", "password", "role"}).AddRow(userId, email, password, role))
 
-		user, err := repo.Register(inputUser)
+		user, err := repo.Register(ctx, inputUser)
 		assert.Error(t, err)
 		assert.Equal(t, domain.ErrUserWithSuchEmailAlreadyExists, err)
 		assert.Nil(t, user)
@@ -82,7 +84,7 @@ func TestRegister(t *testing.T) {
 			WithArgs(email).
 			WillReturnError(sql.ErrConnDone)
 
-		user, err := repo.Register(inputUser)
+		user, err := repo.Register(ctx, inputUser)
 		assert.Error(t, err)
 		assert.Equal(t, domain.ErrCreateUser, err)
 		assert.Nil(t, user)
@@ -109,12 +111,13 @@ func TestGetUserByEmail(t *testing.T) {
 	role := "user"
 	userId := "1"
 
+	ctx := context.Background()
 	t.Run("Successful_Get_User_By_Email", func(t *testing.T) {
 		mock.ExpectQuery("SELECT id, email, password, role FROM users").
 			WithArgs(email).
 			WillReturnRows(sqlmock.NewRows([]string{"id", "email", "password", "role"}).AddRow(userId, email, password, role))
 
-		user, err := repo.GetUserByEmail(email)
+		user, err := repo.GetUserByEmail(ctx, email)
 		assert.NoError(t, err)
 		assert.NotNil(t, user)
 		assert.Equal(t, userId, *user.ID)
@@ -128,7 +131,7 @@ func TestGetUserByEmail(t *testing.T) {
 			WithArgs(email).
 			WillReturnError(sql.ErrNoRows)
 
-		user, err := repo.GetUserByEmail(email)
+		user, err := repo.GetUserByEmail(ctx, email)
 		assert.Error(t, err)
 		assert.Equal(t, domain.ErrFindUser, err)
 		assert.Nil(t, user)
@@ -139,7 +142,7 @@ func TestGetUserByEmail(t *testing.T) {
 			WithArgs(email).
 			WillReturnError(sql.ErrConnDone)
 
-		user, err := repo.GetUserByEmail(email)
+		user, err := repo.GetUserByEmail(ctx, email)
 		assert.Error(t, err)
 		assert.Equal(t, domain.ErrFindUser, err)
 		assert.Nil(t, user)

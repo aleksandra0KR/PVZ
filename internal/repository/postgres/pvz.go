@@ -1,6 +1,7 @@
 package postgres
 
 import (
+	"context"
 	"database/sql"
 	"final/internal/domain"
 	"github.com/Masterminds/squirrel"
@@ -17,12 +18,12 @@ func NewPvzRepository(db *sqlx.DB) *PVZRepository {
 	return &PVZRepository{db: db}
 }
 
-func (r *PVZRepository) CreatePVZ(pvz *domain.PVZ) (*domain.PVZ, error) {
+func (r *PVZRepository) CreatePVZ(ctx context.Context, pvz *domain.PVZ) (*domain.PVZ, error) {
 	query := `INSERT INTO pvz (id, registration_date, city)
               VALUES (COALESCE($1, gen_random_uuid()), COALESCE($2, now()), $3)
               RETURNING id, registration_date`
 
-	row := r.db.QueryRow(query, pvz.ID, pvz.RegistrationDate, pvz.City)
+	row := r.db.QueryRowContext(ctx, query, pvz.ID, pvz.RegistrationDate, pvz.City)
 	if err := row.Scan(&pvz.ID, &pvz.RegistrationDate); err != nil {
 		log.Error(err)
 		return nil, domain.ErrCreatePVZ
@@ -30,10 +31,10 @@ func (r *PVZRepository) CreatePVZ(pvz *domain.PVZ) (*domain.PVZ, error) {
 	return pvz, nil
 }
 
-func (r *PVZRepository) GetAllPVZ() ([]*domain.PVZ, error) {
+func (r *PVZRepository) GetAllPVZ(ctx context.Context) ([]*domain.PVZ, error) {
 	query := `SELECT * FROM pvz`
 
-	rows, err := r.db.Query(query)
+	rows, err := r.db.QueryContext(ctx, query)
 	if err != nil {
 		log.Error(err)
 		return nil, domain.ErrGetPVZ
@@ -59,7 +60,7 @@ func (r *PVZRepository) GetAllPVZ() ([]*domain.PVZ, error) {
 	return result, nil
 }
 
-func (r *PVZRepository) GetPVZInfo(startDate, endDate *time.Time, offset, limit int) ([]domain.PVZWithReceptions, error) {
+func (r *PVZRepository) GetPVZInfo(ctx context.Context, startDate, endDate *time.Time, offset, limit int) ([]domain.PVZWithReceptions, error) {
 	sq := squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar)
 
 	query := sq.
@@ -89,7 +90,7 @@ func (r *PVZRepository) GetPVZInfo(startDate, endDate *time.Time, offset, limit 
 		return nil, domain.ErrGetPVZ
 	}
 
-	rows, err := r.db.Query(sqlQuery, args...)
+	rows, err := r.db.QueryContext(ctx, sqlQuery, args...)
 	if err != nil {
 		log.Error(err)
 		return nil, domain.ErrGetPVZ
